@@ -1,3 +1,4 @@
+from sklearn.preprocessing import StandardScaler
 import argparse
 import pandas as pd
 import pickle
@@ -10,9 +11,6 @@ body = ["Nos", "Nec", "Rsh", "Rel", "Rwr", "Lsh", "Lel", "Lwr",
 
 dist_dict = {}
 var_dict = {}
-
-w = 432     # 이거 나중에 처리해줘야해
-h = 368
 
 parser = argparse.ArgumentParser(description='for preprocessing tfpose data...')
 parser.add_argument('--rawroot', type=str, required=True, help='raw data 경로 및 이름')
@@ -64,11 +62,6 @@ def cal_var(df, num):
 ### 데이터 읽어오기
 df = pd.read_pickle(args.rawroot)    
 
-### w, h 곱해주기
-for i in body:
-    df[i + '_X'] = df[i + '_X'] * w
-    df[i + '_Y'] = df[i + '_Y'] * h
-
 ### 거리 구해서 dictionary로 저장
 for i in body:
     dist_dict[i] = cal_dis(df, 'Nos', i)    
@@ -77,6 +70,14 @@ for i in body:
 dist_frame = pd.DataFrame(dist_dict)
 ### Nos column drop하기. (자기 자신과의 거리니까)
 dist_frame.drop('Nos', inplace=True)
+
+### 정규화
+dist_frame = StandardScaler().fit_transform(dist_frame)
+
+dist_frame_clean = dist_frame.fillna(method='ffill')        # 가장 가까운 앞의 유효숫자 값
+dist_frame_clean = dist_frame.fillna(method='bfill')         # 그리고 남은 nan값 가장 가까운 뒤의 유효숫자 값으로.
+
+dist_frame_clean = dist_frame.fillna(dist_frame.mean())      # 평균으로 nan 채우기
 
 # variance 계산해서 dictionary로 저장
 for i in (dist_frame.columns):
