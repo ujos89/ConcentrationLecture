@@ -4,7 +4,7 @@
 figure 1. Our project overview
 
 ### Contributors
-* [WoodoLee](https://github.com/ku-cylee)
+* [WoodoLee](https://github.com/WoodoLee)
 * [lawkelvin33](https://github.com/lawkelvin33)
 * [noparkee](https://github.com/noparkee)
 * [ujos89](https://github.com/ujos89)
