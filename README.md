@@ -12,7 +12,7 @@ figure 1.
 
 
 ### Step1. video data to pickle (video2pickle.py)
-We used [ildoonet/tf-pose-estimation](https://github.com/ildoonet/tf-pose-estimation.git) to visualize each body parts 
+We used [ildoonet/tf-pose-estimation](https://github.com/ildoonet/tf-pose-estimation.git) to extract each body part informations
 ```sh
 $ python3 video2pickle.py --video [video_name] --savefile [file_name_to_save]
 ```
