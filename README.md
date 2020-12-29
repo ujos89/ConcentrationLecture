@@ -1,5 +1,6 @@
 # ConcentrationLecture
-### Summary
+## Summary
+figure 1.
 
 ### Contributors
 * [WoodoLee](https://github.com/ku-cylee)
@@ -11,7 +12,9 @@
 
 
 ### Step1. video data to pickle ()
-reference: [ildoonet/tf-pose-estimation](https://github.com/ildoonet/tf-pose-estimation.git)
+We used [ildoonet/tf-pose-estimation](https://github.com/ildoonet/tf-pose-estimation.git) to visualize each body parts 
+
+
 
 ### Step2. data preprocessing
 
