@@ -1,8 +1,6 @@
 from sklearn.preprocessing import StandardScaler
 import argparse
 import pandas as pd
-import pickle
-import matplotlib.pyplot as plt
 import numpy as np
 import math
 
@@ -16,7 +14,7 @@ parser.add_argument('--label', type=int, required=True, help='concetrate or not'
 parser.add_argument('--name', type=str, required=True, help='저장할 pkl data 이름')
 args = parser.parse_args()
 
-def cal_dis(df, nose, other):       # str input으로
+def cal_dis(df, nose, other):  # str input으로
     h = np.array([])
     n_x = np.array(df[nose + '_X'])
     n_y = np.array(df[nose + '_Y'])
@@ -75,7 +73,5 @@ for i in (dist_frame.columns):
     var_dict[i] = cal_var(dist_frame[i], 100)
 
 var_df = pd.DataFrame(var_dict) 
-
 var_df['label'] = args.label
-
 var_df.to_pickle('data_prepared/' + args.name + '.pkl')
