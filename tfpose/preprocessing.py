@@ -2,7 +2,6 @@ from sklearn.preprocessing import StandardScaler
 import argparse
 import pandas as pd
 import pickle
-import matplotlib.pyplot as plt
 import numpy as np
 import math
 
