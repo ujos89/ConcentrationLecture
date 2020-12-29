@@ -1,7 +1,8 @@
-# ConcentrationLecture
+# Deep Learning on Human Conentration 
+
 ## Overview
 ![Overview](./images/overview.jpeg)
-figure 1. Our project overview
+figure 1. project overview
 
 ### Contributors
 * [WoodoLee](https://github.com/WoodoLee)
@@ -10,32 +11,46 @@ figure 1. Our project overview
 * [ujos89](https://github.com/ujos89)
 
 ## Flow
-### Step0. Dependency
+
+### Step0. Environment Setting
+ubuntu 20.04
+gpu: GTX 1060 6GB
+- main environment 
+    - conda       4.8.3
+    - python      3.6.12
+- harness gpu
+    - cuda        10.0
+    - cudnn       7.6.5
+    - tensorflow  1.15
+    - keras       2.3.1
+- visualization
+    - matplotlib  3.3.1
+    - seaborn     0.11.1
+- process data
+    - pandas      1.1.1
+    - sklearn     0.23.2
 
 ### Step1. Video data to Pickle (video2pickle.py)
 ```sh
 $ python3 video2pickle.py --video [video_name] --savefile [file_name_to_save]
 ```
 We used [ildoonet/tf-pose-estimation](https://github.com/ildoonet/tf-pose-estimation.git) to extract each body part informations
-
+save informations to pickle 
 ### Step2. Data Preprocessing (preprocessing.py)
 ```sh
 $ python3 preprocessing.py --rawroot [raw_file_name] --label [contribute_or_not] --name [prepared_data_file_name]
 ```
-매 프레임마다 L2(norm)을 사용해서 12개의 각 파트(상체)와 코 사이의 거리를 구한다.
-결측 데이터를 각 항목의 중간값으로 채우고 정규화를 적용한다.
-100개의 프레임 마다 각 파트의 분산을 구하고 라벨을 추가한다.
-하나의 행이 하나의 데이터가 된다.
-
 In preprocessing.py...
-- For each frame, we measured distance between each of the 12 parts (upper body) and the nose by using L2-norm.
-- Fill missing data with median values of each part and apply normalization.???
-- Calculate the dispersion of each part for every 100 frames and add labels.
+- For each frame, we measured the distance to the nose from each of the 12 upper body parts by using L2-norm.
+- For each part, fill missing data with median values and apply normalization.
+- Calculate the variation of each part for every 100 frames and add labels.
 - One row becomes one data.
 
 ### Step3. Merge prepared dataset & Shuffle
+merge dataset and shuffle to prevent biased labeled value
 
 ### Step4. Traing DNN
+explain model.
 
 ### Step5. Analysis
 compared between size of data
