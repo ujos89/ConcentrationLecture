@@ -41,5 +41,3 @@ dz = hist.flatten()
 ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='b', zsort='average')
 
 plt.show()
-
-# python3 2dhistogram.py --file Desktop/tfpose/hci_tfpose/data_pickle/kjk_C03_1.pkl
