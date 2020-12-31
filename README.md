@@ -53,6 +53,9 @@ $ python3 build_trainset.py --name [person_initial] --index [index_number]
 merge dataset and shuffle to prevent biased labeled value
 
 ### Step4. Traing DNN
+```sh
+$ python3 run_dnn.py --file [name of pickle] --plot [graph_idx] --size [dataset_size] --epoch [number of epoch] 
+```
 explain model.
 
 ### Step5. Analysis
