@@ -7,66 +7,59 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import argparse
 import numpy as np
+from sklearn.model_selection import StratifiedKFold, KFold
 
 parser = argparse.ArgumentParser(description='for running DNN...')
 parser.add_argument('--file', type=str, required=True, help='name of file')
-parser.add_argument('--plot', type=str, default='2', help='choose plot graph')
+parser.add_argument('--plot', type=str, default='0', help='choose plot graph')
+parser.add_argument('--size', type=int, default=0, help='choose size of dataset')
+parser.add_argument('--epoch', type=int, default=100, help='number of iterations')
 args = parser.parse_args()
 
-dataset = pd.read_pickle("./train_set/" + args.file + ".pkl")
-
-train_dataset = dataset.sample(frac=0.8, random_state = 0)
-test_dataset = dataset.drop(train_dataset.index)
-
-#remove label from dataset
-train_labels = train_dataset.pop('label')
-test_labels = test_dataset.pop('label')
+#build dataset
+#kjk size:2010
+def build_dataset(cnt):
+    rawdata = pd.read_pickle("./train_set/" + args.file + ".pkl")
+    if cnt > len(rawdata):
+        return pd.DataFrame()
+    elif cnt == 0:
+        return rawdata
+    else:
+        return rawdata[:cnt]
+#DNN model
 
 def build_model():
     model = keras.Sequential([
-        layers.Dense(18, activation='relu', input_shape=[len(train_dataset.keys())]),
+        layers.Dense(len(train_dataset.keys()), activation='relu', input_shape=[len(train_dataset.keys())]),
+        layers.Dense(128, activation='relu'),
         layers.Dense(64, activation='relu'),
-
-        layers.Dense(1)
+        layers.Dense(1, activation='sigmoid')
     ])
-    optimizer = tf.keras.optimizers.RMSprop(0.001)
-    model.compile(loss='mse',
-                  optimizer = optimizer,
-                  metrics = ['mae', 'mse'])
+    keras.optimizers.RMSprop(0.1)
+    model.compile(loss='binary_crossentropy',
+                  optimizer = 'rmsprop',
+                  metrics = ['mae', 'mse','accuracy'])
     return model
 
-model = build_model()
-
-#(optional) shows model info
-model.summary()
-
-#(optional) checks if model is working properly
-example_batch = train_dataset[:10]
-example_result = model.predict(example_batch)
-example_result
-
-#(optional) prints dot('.') for every epoch
+#prints dot('.') for every epoch for visual convenience
 class PrintDot(keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs):
         if epoch % 100 == 0: print('')
         print('.', end='')
 
-#number of epochs
-EPOCHS = 1000
+#calculate accuracy
+def cal_accuracy(test_labels, test_predictions, standard):
+    answer = test_labels.to_numpy()
+    tp_set = np.concatenate((np.reshape(test_predictions, (test_predictions.shape[0], 1)), np.reshape(answer, (answer.shape[0], 1))) , axis=1)
+    true_cnt = 0
+    for tp in tp_set:
+        if tp[0] <= standard and tp[1] == 0:
+            true_cnt += 1
+        elif tp[0] > standard and tp[1] == 1:
+            true_cnt += 1
 
-#(model.fit==> what is this??)
-history = model.fit(
-    train_dataset, train_labels, epochs=EPOCHS, validation_split=0.2, verbose=0,
-    callbacks=[PrintDot()]
-)
-
-#Saves model
-model.save('model_pose01.model')
-
-#(optional) visualizes training process
-hist = pd.DataFrame(history.history)
-hist['epoch']= history.epoch
-test_predictions = model.predict(test_dataset).flatten()
+    accuracy = true_cnt / len(test_labels) * 100
+    return tp_set, accuracy
 
 #(optional) Graph of training process
 def plot_history(history):
@@ -108,26 +101,53 @@ def plot_history3(test_predictions, test_labels, hist):
     _=plt.ylabel("Count")
     plt.show()
 
-#plot graph
-plot = list(map(int, args.plot.split(',')))
-for idx in plot:
-    if idx == 1:
-        plot_history(history)
-    elif idx == 2:
-        plot_history2(test_labels, test_predictions, test_dataset, model)
-    elif idx == 3:
-        plot_history3(test_predictions, test_labels, hist)
+##main
+dataset = build_dataset(args.size)
 
-#calculate accuracy
-answer = test_labels.to_numpy()
-tp_set = np.concatenate((np.reshape(test_predictions, (test_predictions.shape[0], 1)), np.reshape(answer, (answer.shape[0], 1))) , axis=1)
-true_cnt = 0
-for tp in tp_set:
-    if tp[0] <= 0.5 and tp[1] == 0:
-        true_cnt += 1
-    elif tp[0] > 0.5 and tp[1] == 1:
-        true_cnt += 1
+#split test, train set
+'''
+train_dataset = dataset.sample(frac=0.8, random_state = 0)
+test_dataset = dataset.drop(train_dataset.index)
+#remove label from dataset
+train_labels = train_dataset.pop('label')
+test_labels = test_dataset.pop('label')
+'''
+# Stratified k-fold
+skf = StratifiedKFold(n_splits=5)
+y = dataset.pop('label')
+X = dataset
 
-accuracy = true_cnt / len(test_labels) * 100
-print(tp_set[-10:])
-print("accuracy: ",accuracy,"&")
+#deep learning for each k-folded set
+accuracy = []
+for train_idx, test_idx in skf.split(X, y): 
+    train_dataset, test_dataset = X.iloc[train_idx], X.iloc[test_idx]
+    train_labels, test_labels = y.iloc[train_idx], y.iloc[test_idx]
+
+    #run dnn
+    model = build_model()
+    #print(model.summary())
+    history = model.fit(train_dataset, train_labels, epochs=args.epoch, validation_split=0.2, verbose=0, callbacks=[PrintDot()])
+    #save model
+    #model.save('model_pose.model')
+
+    #calculate prediction
+    test_predictions = model.predict(test_dataset).flatten()
+    tp_set, tmp_accuracy = cal_accuracy(test_labels, test_predictions, 0.5)
+    accuracy.append(tmp_accuracy)
+    print(tp_set[-50:])
+    print("accuracy: ",tmp_accuracy,"%")
+
+    #visualize graph
+    hist = pd.DataFrame(history.history)
+    hist['epoch']= history.epoch
+    plot = list(map(int, args.plot.split(',')))
+    for idx in plot:
+        if idx == 1:
+            plot_history(history)
+        elif idx == 2:
+            plot_history2(test_labels, test_predictions, test_dataset, model)
+        elif idx == 3:
+            plot_history3(test_predictions, test_labels, hist)
+
+print(accuracy)
+print("average accuracy: ",sum(accuracy)/len(accuracy),"%")
