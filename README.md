@@ -38,7 +38,7 @@ We used [ildoonet/tf-pose-estimation](https://github.com/ildoonet/tf-pose-estima
 save informations to pickle 
 ### Step2. Data Preprocessing (preprocessing.py)
 ```sh
-$ python3 preprocessing.py --rawroot [raw_file_name] --label [contribute_or_not] --name [prepared_data_file_name]
+$ python3 preprocessing.py --rawroot [raw_file_name]
 ```
 In preprocessing.py...
 - For each frame, we measured the distance to the nose from each of the 12 upper body parts by using L2-norm.
