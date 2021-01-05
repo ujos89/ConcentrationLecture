@@ -6,13 +6,12 @@ import numpy as np
 import math
 
 body = ["Nos", "Nec", "Rsh", "Rel", "Rwr", "Lsh", "Lel", "Lwr", "Rey", "Ley", "Rea", "Lea"]
+# body = ["Nos", "Nec", "Rey", "Ley", "Rea", "Lea"]     # 쏘
 
 dist_dict = {}
 var_dict = {}
 parser = argparse.ArgumentParser(description='for preprocessing tfpose data...')
 parser.add_argument('--rawroot', type=str, required=True, help='raw data 경로 및 이름')
-parser.add_argument('--label', type=int, required=True, help='concetrate or not')
-parser.add_argument('--name', type=str, required=True, help='저장할 pkl data 이름')
 args = parser.parse_args()
 
 def cal_dis(df, nose, other):  # str input으로
@@ -58,7 +57,7 @@ for i in body:
 dist_frame = pd.DataFrame(dist_dict)
 
 
-### 결측치 처리 ###
+### 결측치 처리 
 dist_frame = dist_frame.replace(-1, np.NaN)
 
 for i in body:
@@ -73,6 +72,6 @@ stand_dist_frame = pd.DataFrame(StandardScaler(with_mean=True, with_std=True).fi
 for i in (dist_frame.columns):
     var_dict[i] = cal_var(dist_frame[i], 100)
 
-var_df = pd.DataFrame(var_dict) 
-var_df['label'] = args.label
-var_df.to_pickle('data_prepared/' + args.name + '.pkl')
+var_df = pd.DataFrame(var_dict)
+var_df['label'] = int(args.rawroot[-1])
+var_df.to_pickle('data_prepared/' + args.rawroot[:-2] + '.pkl')

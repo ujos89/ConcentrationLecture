@@ -47,10 +47,18 @@ In preprocessing.py...
 - One row becomes one data.
 
 ### Step3. Merge prepared dataset & Shuffle
+```sh
+$ python3 build_trainset.py --name [person_initial] --index [index_number] 
+```
 merge dataset and shuffle to prevent biased labeled value
 
 ### Step4. Traing DNN
-explain model.
+```sh
+$ python3 run_dnn.py --file [name of pickle] --plot [graph_idx] --size [dataset_size] --epoch [number of epoch] 
+```
+- 1st layer: dimension:11, activation: relu
+- 2nd layer: dimension:32, activation: relu
+- 3rd layer: dimension:1, activation: sigmoid
 
 ### Step5. Analysis
 compared between size of data

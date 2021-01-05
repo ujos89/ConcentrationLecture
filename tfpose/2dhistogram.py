@@ -28,6 +28,16 @@ histo = histo[histo.Y != 0]
 
 print(histo)
 fig = px.density_heatmap(histo, x="X", y="Y", marginal_x="histogram", marginal_y="histogram",nbinsx=50, nbinsy=50)
+
+fig.update_layout(
+    font=dict(
+        family="Times",
+        size=25)
+)
 fig.show()
+
+
+
+
 
 # python3 2dhistogram.py --file Desktop/tfpose/hci_tfpose/data_pickle/kjk_C03_1.pkl

@@ -5,7 +5,7 @@ import pandas as pd
 # parser
 parser = argparse.ArgumentParser(description='for build train set...')
 parser.add_argument('--name', type=str, required=True, help='name for merge')
-parser.add_argument('--index', type=int, default=0, help='index to indicate dataframe')
+parser.add_argument('--index', type=str, default=0, help='index to indicate dataframe')
 args = parser.parse_args()
 
 def mergebyname(files, name):
