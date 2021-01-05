@@ -31,7 +31,7 @@ def build_dataset(cnt):
 def build_model():
     model = keras.Sequential([
         layers.Dense(len(train_dataset.keys()), activation='relu', input_shape=[len(train_dataset.keys())]),
-        #layers.Dense(64, activation='relu'),
+        layers.Dense(32, activation='relu'),
         layers.Dense(1, activation='sigmoid')
     ])
     keras.optimizers.RMSprop(0.1)
@@ -55,7 +55,7 @@ def cal_accuracy(test_labels, test_predictions):
     sorted_predictions = np.sort(tp_set)
     standard_idx = np.sum(test_labels)-1
     standard = sorted_predictions[standard_idx,0]
-    print(standard)
+    #print(standard)
 
     true_cnt = 0
     for tp in tp_set:
@@ -116,6 +116,9 @@ skf = StratifiedKFold(n_splits=5, random_state=42)
 
 #deep learning for each k-folded set
 accuracy = []
+tp_df = pd.DataFrame()
+i = 0
+
 for train_idx, val_idx in skf.split(X, y): 
     train_dataset, val_dataset = X.iloc[train_idx], X.iloc[val_idx]
     train_labels, val_labels = y.iloc[train_idx], y.iloc[val_idx]
@@ -131,8 +134,14 @@ for train_idx, val_idx in skf.split(X, y):
     test_predictions = model.predict(test_dataset).flatten()
     tp_set, tmp_accuracy = cal_accuracy(test_labels, test_predictions)
     accuracy.append(tmp_accuracy)
-    print(tp_set[-100:])
+    #print(tp_set[-10:])
     print("accuracy: ",tmp_accuracy,"%")
+
+    #extract tp_set
+    column_name = ['predcition('+str(i+1)+'-fold)','label('+str(i+1)+'-fold)']
+    tp_tmp = pd.DataFrame(tp_set, columns=column_name)
+    tp_df = pd.concat([tp_df, tp_tmp], axis=1)
+    i += 1
 
     #visualize graph
     hist = pd.DataFrame(history.history)
@@ -146,6 +155,10 @@ for train_idx, val_idx in skf.split(X, y):
         elif idx == 3:
             plot_history3(test_predictions, test_labels, hist)
 
+#save predictions label to pickle
+tp_df.to_pickle('./analysis/'+args.file+'.pkl')
+
+#print accuracy for each fold
 print("accuracy for each fold")
 print(accuracy)
 print("average accuracy: ",sum(accuracy)/len(accuracy),"%")
