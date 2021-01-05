@@ -28,7 +28,13 @@ histo = histo[histo.Y != 0]
 
 print(histo)
 fig = px.density_heatmap(histo, x="X", y="Y", marginal_x="histogram", marginal_y="histogram",nbinsx=50, nbinsy=50)
+fig.update_layout(
+    font=dict(
+        family="Times",
+        size=25)
+)
 fig.show()
+
 
 
 """

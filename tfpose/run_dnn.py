@@ -31,8 +31,7 @@ def build_dataset(cnt):
 def build_model():
     model = keras.Sequential([
         layers.Dense(len(train_dataset.keys()), activation='relu', input_shape=[len(train_dataset.keys())]),
-        layers.Dense(128, activation='relu'),
-        layers.Dense(64, activation='relu'),
+        #layers.Dense(64, activation='relu'),
         layers.Dense(1, activation='sigmoid')
     ])
     keras.optimizers.RMSprop(0.1)
@@ -48,9 +47,16 @@ class PrintDot(keras.callbacks.Callback):
         print('.', end='')
 
 #calculate accuracy
-def cal_accuracy(test_labels, test_predictions, standard):
+def cal_accuracy(test_labels, test_predictions):
     answer = test_labels.to_numpy()
     tp_set = np.concatenate((np.reshape(test_predictions, (test_predictions.shape[0], 1)), np.reshape(answer, (answer.shape[0], 1))) , axis=1)
+    
+    #cal standard
+    sorted_predictions = np.sort(tp_set)
+    standard_idx = np.sum(test_labels)-1
+    standard = sorted_predictions[standard_idx,0]
+    print(standard)
+
     true_cnt = 0
     for tp in tp_set:
         if tp[0] <= standard and tp[1] == 0:
@@ -61,21 +67,12 @@ def cal_accuracy(test_labels, test_predictions, standard):
     accuracy = true_cnt / len(test_labels) * 100
     return tp_set, accuracy
 
-#(optional) Graph of training process
-def plot_history(history):
+#Graph of epoch vs. mse for trainset, val_set 
+def plot_history1(history):
     hist = pd.DataFrame(history.history)
     hist['epoch'] = history.epoch
-    plt.figure(figsize=(8,12))
-    plt.subplot(2,1,1)
     plt.xlabel('Epoch')
-    plt.ylabel('Mean Abs Error [MPG]')
-    plt.scatter(hist['epoch'], hist['mean_absolute_error'], label='Train Error')
-    plt.scatter(hist['epoch'], hist['val_mean_absolute_error'], label = 'Val Error')
-    plt.ylim([0,.5])
-    plt.legend()
-    plt.subplot(2,1,2)
-    plt.xlabel('Epoch')
-    plt.ylabel('Mean Square Error [$MPG^2$]')
+    plt.ylabel('Mean Square Error')
     plt.scatter(hist['epoch'], hist['mean_squared_error'], label='Train Error')
     plt.scatter(hist['epoch'], hist['val_mean_squared_error'], label = 'Val Error')
     plt.legend()
@@ -101,40 +98,40 @@ def plot_history3(test_predictions, test_labels, hist):
     _=plt.ylabel("Count")
     plt.show()
 
-##main
-dataset = build_dataset(args.size)
+#historgram for test prediction
 
-#split test, train set
-'''
-train_dataset = dataset.sample(frac=0.8, random_state = 0)
-test_dataset = dataset.drop(train_dataset.index)
-#remove label from dataset
-train_labels = train_dataset.pop('label')
+##main
+
+#split test, train set(X: train_dataset)
+dataset = build_dataset(args.size)
+X = dataset.sample(frac=0.8, random_state = 0)
+test_dataset = dataset.drop(X.index)
+
+#split label(y: train_label)
+y = X.pop('label')
 test_labels = test_dataset.pop('label')
-'''
+
 # Stratified k-fold
-skf = StratifiedKFold(n_splits=5)
-y = dataset.pop('label')
-X = dataset
+skf = StratifiedKFold(n_splits=5, random_state=42)
 
 #deep learning for each k-folded set
 accuracy = []
-for train_idx, test_idx in skf.split(X, y): 
-    train_dataset, test_dataset = X.iloc[train_idx], X.iloc[test_idx]
-    train_labels, test_labels = y.iloc[train_idx], y.iloc[test_idx]
+for train_idx, val_idx in skf.split(X, y): 
+    train_dataset, val_dataset = X.iloc[train_idx], X.iloc[val_idx]
+    train_labels, val_labels = y.iloc[train_idx], y.iloc[val_idx]
 
     #run dnn
     model = build_model()
     #print(model.summary())
-    history = model.fit(train_dataset, train_labels, epochs=args.epoch, validation_split=0.2, verbose=0, callbacks=[PrintDot()])
+    history = model.fit(train_dataset, train_labels, epochs=args.epoch, validation_data=(val_dataset, val_labels), verbose=0, callbacks=[PrintDot()])
     #save model
     #model.save('model_pose.model')
 
     #calculate prediction
     test_predictions = model.predict(test_dataset).flatten()
-    tp_set, tmp_accuracy = cal_accuracy(test_labels, test_predictions, 0.5)
+    tp_set, tmp_accuracy = cal_accuracy(test_labels, test_predictions)
     accuracy.append(tmp_accuracy)
-    print(tp_set[-50:])
+    print(tp_set[-100:])
     print("accuracy: ",tmp_accuracy,"%")
 
     #visualize graph
@@ -143,11 +140,12 @@ for train_idx, test_idx in skf.split(X, y):
     plot = list(map(int, args.plot.split(',')))
     for idx in plot:
         if idx == 1:
-            plot_history(history)
+            plot_history1(history)
         elif idx == 2:
             plot_history2(test_labels, test_predictions, test_dataset, model)
         elif idx == 3:
             plot_history3(test_predictions, test_labels, hist)
 
+print("accuracy for each fold")
 print(accuracy)
 print("average accuracy: ",sum(accuracy)/len(accuracy),"%")
