@@ -56,7 +56,10 @@ merge dataset and shuffle to prevent biased labeled value
 ```sh
 $ python3 run_dnn.py --file [name of pickle] --plot [graph_idx] --size [dataset_size] --epoch [number of epoch] 
 ```
-explain model.
+1st layer: dimension:11, activation: relu
+2nd layer: dimension:64, activation: relu
+3rd layer: dimension:64, activation: relu
+4th layer: dimension:1, activation: sigmoid
 
 ### Step5. Analysis
 compared between size of data
