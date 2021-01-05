@@ -28,6 +28,7 @@ histo = histo[histo.Y != 0]
 
 print(histo)
 fig = px.density_heatmap(histo, x="X", y="Y", marginal_x="histogram", marginal_y="histogram",nbinsx=50, nbinsy=50)
+
 fig.update_layout(
     font=dict(
         family="Times",
@@ -37,26 +38,6 @@ fig.show()
 
 
 
-"""
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-hist, xedges, yedges = np.histogram2d(histo['X'], histo['Y'], bins=50)
 
-plt.title('3D histogram of 2D normally distributed data points')
-plt.xlabel('x axis')
-plt.ylabel('y axis')
 
-xpos, ypos = np.meshgrid(xedges[:-1] + 0.25, yedges[:-1] + 0.25)
-xpos = xpos.flatten('F')
-ypos = ypos.flatten('F')
-zpos = np.zeros_like(xpos)
-
-dx = 0.5 * np.ones_like(zpos)
-dy = dx.copy()
-dz = hist.flatten()
-
-ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color='b', zsort='average')
-
-plt.show()
-"""
 # python3 2dhistogram.py --file Desktop/tfpose/hci_tfpose/data_pickle/kjk_C03_1.pkl
