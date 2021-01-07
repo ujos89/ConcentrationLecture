@@ -1,4 +1,4 @@
-# Deep Learning on Human Conentration 
+# Deep Learning on Human Concentration 
 
 ## Overview
 ![Overview](./images/overview.jpeg)
