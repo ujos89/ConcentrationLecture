@@ -14,7 +14,7 @@ args = parser.parse_args()
 df = pd.read_pickle(args.file)      # x, y, score
 df = df[body]
 
-print(df.describe())
+print(df)
 
 # 한 번에 그리기
 for i in body:
@@ -33,9 +33,11 @@ for j in range(len(body)):
     part = df[body[j]][df[body[j]] > 0]
     plt.subplot(3, 4, j+1)
     #ax[j].hist(part, bins=100, density=True, alpha=0.5, histtype='step')
-    plt.hist(part, bins=100, density=True, alpha=0.5, histtype='step')
-    plt.ylim(0, 30)
-    plt.xlabel(body[j])
-    plt.ylabel('number')
+    plt.title(arg)
+    plt.hist(part, bins=20, density=True, alpha=0.5, histtype='step')
+    
+    plt.xlim(0, 1)
+    plt.xlabel(body[j], fontsize=20)
+    plt.ylabel('number', fontsize=20)
 
-plt.savefig('score_histogram_4x3.png')
+#plt.savefig('score_kpg_ra4_1_histogram_4x3.png')
