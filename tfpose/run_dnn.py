@@ -31,13 +31,13 @@ def build_dataset(cnt):
 def build_model():
     model = keras.Sequential([
         layers.Dense(len(train_dataset.keys()), activation='relu', input_shape=[len(train_dataset.keys())]),
-        layers.Dense(32, activation='relu'),
+        #layers.Dense(32, activation='relu'),
         layers.Dense(1, activation='sigmoid')
     ])
-    keras.optimizers.RMSprop(0.1)
-    model.compile(loss='binary_crossentropy',
-                  optimizer = 'rmsprop',
-                  metrics = ['mae', 'mse','accuracy'])
+    #keras.optimizers.RMSprop(0.1)
+    keras.optimizers.Adam(lr=0.001)
+    model.compile(loss='binary_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
+    #metrics = ['mae', 'mse','accuracy'])
     return model
 
 #prints dot('.') for every epoch for visual convenience
