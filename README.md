@@ -1,4 +1,4 @@
-# Deep Learning on Human Conentration 
+# Deep Learning on Human Concentration 
 
 ## Overview
 ![Overview](./images/overview.jpeg)
@@ -52,7 +52,7 @@ $ python3 build_trainset.py --name [person_initial] --index [index_number]
 ```
 merge dataset and shuffle to prevent biased labeled value
 
-### Step4. Traing DNN
+### Step4. Training DNN
 ```sh
 $ python3 run_dnn.py --file [name of pickle] --plot [graph_idx] --size [dataset_size] --epoch [number of epoch] 
 ```
