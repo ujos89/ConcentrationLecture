@@ -35,14 +35,14 @@ def cal_var(df, num):       # num: 몇 개로 자를지 / type(df) = Series
     while i <= len(df):
         if i + num <= len(df):
             temp_lst = df[i:i+num]
-        else:
-            temp_lst = df[i:]
+        else:       # 마지막 temp_lst 버림
+            break
         
         temp_lst = np.array(temp_lst)
-        if np.isnan(temp_lst).sum() == num or np.isnan(temp_lst).sum() == (num - 1):
+        if np.isnan(temp_lst).sum() == len(temp_lst) or np.isnan(temp_lst).sum() == (len(temp_lst) - 1):
             var_lst.append(-1)
         else:
-            var = np.nanvar(temp_lst)
+            var = np.nanvar(temp_lst.reshape(-1, 1))
             var_lst.append(var)
 
         i = i + num
@@ -57,7 +57,6 @@ for i in body:
     dist_dict[i] = cal_dis(df, 'Nos', i)    
 
 dist_frame = pd.DataFrame(dist_dict)
-print(dist_frame)
 
 dist_frame.drop(columns='Nos', inplace=True)
 
