@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 #import to dataFrame
 dfRaw = pd.read_pickle(args.file)      # x, y, score
-# dfRaw = dfRaw.iloc[:300]
+#dfRaw = dfRaw.iloc[:300]
 #print(dfRaw.iloc[:,0])
 
 #Dictionizing dataframes - Raw data
@@ -85,35 +85,87 @@ rangeMax = 1
 # pr.to_file('./testResult.html')
 
 #2d Histogram
-fig, axes = plt.subplots(nrows=3, ncols=3)
+fig1, axes1 = plt.subplots(nrows=2, ncols=6)
 
-nbins = 50
+nbins = 25
 
-axes[0, 0].set_title(indexTotal[0])
-axes[0, 0].hist2d( funcSs(dfDictRaw["dfRaw0"]).iloc[:,0],  funcSs(dfDictRaw["dfRaw0"]).iloc[:,1], bins=nbins)
+#Top
+#nose
+dfNormNoseX = funcSs(dfDictRaw["dfRaw0"]).iloc[:,0]
+dfNormNoseY = funcSs(dfDictRaw["dfRaw0"]).iloc[:,1]
+axes1[0, 0].set_title(indexTotal[0])
+axes1[0, 0].hist2d( dfNormNoseX,  dfNormNoseY, bins=nbins)
 
-axes[1, 0].set_title(indexTotal[3])
-axes[1, 0].hist2d( funcSs(dfDictRaw["dfRaw3"]).iloc[:,0],  funcSs(dfDictRaw["dfRaw3"]).iloc[:,1], bins=nbins)
+#Left Eye
+dfNormLeEyeX = funcSs(dfDictRaw["dfRaw45"]).iloc[:,0]
+dfNormLeEyeY = funcSs(dfDictRaw["dfRaw45"]).iloc[:,1]
+axes1[0, 1].set_title(indexTotal[45])
+axes1[0, 1].hist2d( dfNormLeEyeX,  dfNormLeEyeY, bins=nbins)
 
-axes[2, 0].set_title(indexTotal[6])
-axes[2, 0].hist2d( funcSs(dfDictRaw["dfRaw6"]).iloc[:,0],  funcSs(dfDictRaw["dfRaw6"]).iloc[:,1], bins=nbins)
+#Right Eye
+dfNormRiEyeX = funcSs(dfDictRaw["dfRaw42"]).iloc[:,0]
+dfNormRiEyeY = funcSs(dfDictRaw["dfRaw42"]).iloc[:,1]
+axes1[0, 2].set_title(indexTotal[42])
+axes1[0, 2].hist2d( dfNormRiEyeX,  dfNormRiEyeY, bins=nbins)
 
-axes[0, 1].set_title(indexTotal[15])
-axes[0, 1].hist2d( funcSs(dfDictRaw["dfRaw15"]).iloc[:,0],  funcSs(dfDictRaw["dfRaw15"]).iloc[:,1], bins=nbins)
+#Right ear
+dfNormRiEerX = funcSs(dfDictRaw["dfRaw48"]).iloc[:,0]
+dfNormRiEerY = funcSs(dfDictRaw["dfRaw48"]).iloc[:,1]
+axes1[0, 3].set_title(indexTotal[48])
+axes1[0, 3].hist2d( dfNormRiEerX,  dfNormRiEerY, bins=nbins)
 
-axes[0, 2].set_title(indexTotal[45])
-axes[0, 2].hist2d( funcSs(dfDictRaw["dfRaw45"]).iloc[:,0],  funcSs(dfDictRaw["dfRaw45"]).iloc[:,1], bins=nbins)
+#Concating Top part 2D
+dfNormTopX = pd.concat([dfNormNoseX,dfNormLeEyeX,dfNormRiEyeX,dfNormRiEerX ] ,axis=0)
+dfNormTopY = pd.concat([dfNormNoseY,dfNormLeEyeY,dfNormRiEyeY,dfNormRiEerY ] ,axis=0)
 
-axes[1, 1].set_title(indexTotal[48])
-axes[1, 1].hist2d( funcSs(dfDictRaw["dfRaw48"]).iloc[:,0],  funcSs(dfDictRaw["dfRaw48"]).iloc[:,1], bins=nbins)
+axes1[0, 4].set_title("Top")
+axes1[0, 4].hist2d( dfNormTopX,  dfNormTopY, bins=nbins)
 
+#Concating Top part 1D
+dfNormTop = pd.concat([dfNormTopX, dfNormTopY] ,axis=0)
+
+axes1[0, 5].set_title("Top")
+axes1[0, 5].hist( dfNormTop, bins=nbins)
+
+#middle
+#Neck
+dfNormNeckX = funcSs(dfDictRaw["dfRaw3"]).iloc[:,0]
+dfNormNeckY = funcSs(dfDictRaw["dfRaw3"]).iloc[:,1]
+axes1[1, 0].set_title(indexTotal[3])
+axes1[1, 0].hist2d( dfNormNeckX,  dfNormNeckY, bins=nbins)
+
+#Right shoulder
+dfNormRiShX = funcSs(dfDictRaw["dfRaw6"]).iloc[:,0]
+dfNormRishY = funcSs(dfDictRaw["dfRaw6"]).iloc[:,1]
+axes1[1, 1].set_title(indexTotal[6])
+axes1[1, 1].hist2d( dfNormRiShX,  dfNormRishY, bins=nbins)
+
+#Left shoulder
+dfNormLeShX = funcSs(dfDictRaw["dfRaw15"]).iloc[:,0]
+dfNormLeshY = funcSs(dfDictRaw["dfRaw15"]).iloc[:,1]
+axes1[1, 2].set_title(indexTotal[15])
+axes1[1, 2].hist2d( dfNormLeShX,  dfNormLeshY, bins=nbins)
+
+#Concating Mid part 2D
+dfNormMidX = pd.concat([dfNormNeckX,dfNormRiShX,dfNormLeShX ] ,axis=0)
+dfNormMidY = pd.concat([dfNormNeckY,dfNormRishY,dfNormLeshY ] ,axis=0)
+axes1[1, 4].set_title("Mid")
+axes1[1, 4].hist2d( dfNormMidX,  dfNormMidY, bins=nbins)
+
+#Concating Mid part 1D
+dfNormMid = pd.concat([dfNormMidX, dfNormMidY] ,axis=0)
+axes1[1, 5].set_title("Mid")
+axes1[1, 5].hist( dfNormMid, bins=nbins)
+
+
+#fig2, axes2 = plt.subplots(nrows=2, ncols=6)
 
 # for ax, gamma in zip(axes.flat[1:], gammas):
 #     ax.set_title(r'Power law $(\gamma=%1.1f)$' % gamma)
 #     ax.hist2d(data[:, 0], data[:, 1],
 #               bins=100, norm=mcolors.PowerNorm(gamma))
 
-fig.tight_layout()
+fig1.tight_layout()
 
 plt.show()
 
