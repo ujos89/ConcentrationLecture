@@ -19,7 +19,7 @@ args = parser.parse_args()
 dfRaw = pd.read_pickle(args.file) 
 
 #if you want to cut
-dfRaw = dfRaw.iloc[:10000]
+dfRaw = dfRaw.iloc[:300]
 print(color.GREEN + str(args) + "is ready"+ color.ENDC)
 
 
@@ -39,8 +39,8 @@ dfDictNorm = md.funcNorm(dfDictNorm, dfDictRaw, dfRaw)
 #print(dfDictNorm)
 #2d Histogram number
 histNum = len(dfDictNorm)
-print(histNum)
-print(dfDictNorm['dfNorm39'])
+#print(histNum)
+#print(dfDictNorm['dfNorm39'])
 
 fig1, axes1 = plt.subplots(nrows=3, ncols=6)
 
