@@ -16,12 +16,12 @@ def rearrange(df_raw):
     return df_raw[top], df_raw[mid]
 
 #get variance by divided data
-def get_var(df, cut_num):
+def get_std(df, cut_num):
     #(X,Y)*5 for plot
     data = [np.array([])for _ in range(10)]
     #x,y variance for training
-    x_var = np.array([])
-    y_var = np.array([])
+    x_std = np.array([])
+    y_std = np.array([])
     i = 0
     scaler = preprocessing.MinMaxScaler()
     
@@ -55,13 +55,13 @@ def get_var(df, cut_num):
             else:
                 X_data = np.append(X_data, scaled)
 
-        #get variance
-        x_var = np.append(x_var, np.var(X_data))
-        y_var = np.append(y_var, np.var(Y_data))
+        #get standard deviation
+        x_std = np.append(x_std, np.std(X_data))
+        y_std = np.append(y_std, np.std(Y_data))
 
         i += cut_num
         
-    return data, x_var, y_var
+    return data, x_std, y_std
 
 ##main
 
@@ -69,12 +69,12 @@ def get_var(df, cut_num):
 df_raw = pd.read_pickle('../0-data/data_pickle/'+args.file+'.pkl')
 df_top, df_mid = rearrange(df_raw)
 
-#get var from top & mid
-data_top, top_x_var, top_y_var = get_var(df_top, 1000)
-data_mid, mid_x_var, mid_y_var = get_var(df_mid, 1000)
+#get standard deviation from top & mid
+data_top, top_x_std, top_y_std = get_std(df_top, 1000)
+data_mid, mid_x_std, mid_y_std = get_std(df_mid, 1000)
 
 #data merge for dnn
-input_data = np.concatenate((top_x_var.reshape(-1,1), top_y_var.reshape(-1,1), mid_x_var.reshape(-1,1), mid_y_var.reshape(-1,1)), axis=1)
+input_data = np.concatenate((top_x_std.reshape(-1,1), top_y_std.reshape(-1,1), mid_x_std.reshape(-1,1), mid_y_std.reshape(-1,1)), axis=1)
 df_prepared = pd.DataFrame(input_data, columns=['Top_X','Top_Y','Mid_X','Mid_Y'])
 #add label
 df_prepared['label'] = int(args.file[-1])
