@@ -1,73 +1,85 @@
-from sklearn.preprocessing import StandardScaler
 import argparse
 import pandas as pd
 import numpy as np
-import math
+from sklearn import preprocessing
 
-#body = ["Nos", "Nec", "Rsh", "Rel", "Rwr", "Lsh", "Lel", "Lwr", "Rey", "Ley", "Rea", "Lea"]
-body = ["Nos", "Nec", "Rsh", "Lsh", "Rey", "Ley", "Rea", "Lea"]       # drop wrist, elbow
-
-dist_dict = {}
-var_dict = {}
+#parser control
 parser = argparse.ArgumentParser(description='for preprocessing tfpose data...')
-parser.add_argument('--rawroot', type=str, required=True, help='raw data 경로 및 이름')
+parser.add_argument('--file', type=str, required=True, help='raw (pickle)data path and name without ".pkl"')
 args = parser.parse_args()
 
-def cal_dis(df, nose, other):  # str input으로
-    h = np.array([])
-    n_x = np.array(df[nose + '_X'])
-    n_y = np.array(df[nose + '_Y'])
-    o_x = np.array(df[other + '_X'])
-    o_y = np.array(df[other + '_Y'])
-    o_s = np.array(df[other + '_Score'])
+def rearrange(df_raw):
+    #body = ["Nos", "Nec", "Rsh", "Rel", "Rwr", "Lsh", "Lel", "Lwr", "Rhi", "Rkn", "Ran", "Lhi", "Lkn", "Lan", "Rey", "Ley", "Rea", "Lea"]
+    top = ["Nos_X","Nos_Y","Ley_X","Ley_Y","Rey_X","Rey_Y","Lea_X","Lea_Y","Rea_X","Rea_Y"]
+    mid = ["Nec_X","Nec_Y","Lsh_X","Lsh_Y","Rsh_X","Rsh_Y","Lel_X","Lel_Y","Rel_X","Rel_Y"]
 
-    for i in range(len(df)) :
-        if o_s[i]==0:
-            h = np.append(h, -1)
-        else:
-            c = math.sqrt((n_x[i] - o_x[i])**2 + (n_y[i] - o_y[i])**2 )
-            h = np.append(h, c)
-    return h
+    return df_raw[top], df_raw[mid]
 
-def cal_var(df, num):       # num: 몇 개로 자를지 / type(df) = Series
+#get variance by divided data
+def get_std(df, cut_num):
+    #(X,Y)*5 for plot
+    data = [np.array([])for _ in range(10)]
+    #x,y variance for training
+    x_std = np.array([])
+    y_std = np.array([])
     i = 0
-    var_lst = []
-    while i <= len(df):
-        if i + num <= len(df):
-            temp_lst = df[i:i+num]
-        else:       # 마지막 temp_lst 버림
-            break
-        
-        temp_lst = np.array(temp_lst)
-        if np.isnan(temp_lst).sum() == len(temp_lst) or np.isnan(temp_lst).sum() == (len(temp_lst) - 1):
-            var_lst.append(-1)
-        else:
-            var = np.nanvar(temp_lst.reshape(-1, 1))
-            var_lst.append(var)
-
-        i = i + num
-
-    return var_lst
+    scaler = preprocessing.MinMaxScaler()
     
-### -- ###
-df = pd.read_pickle('data_pickle/' + args.rawroot + '.pkl')    
+    while i <= len(df):
+        #cut data to get variacne
+        if i + cut_num <= len(df):
+            df_tmp = df[i:i+cut_num]
+        #remove remained data after cut
+        else:
+            break
 
-### 거리 구해서 dictionary로 저장
-for i in body:
-    dist_dict[i] = cal_dis(df, 'Nos', i)    
+        X_data = np.array([])
+        Y_data = np.array([])
 
-dist_frame = pd.DataFrame(dist_dict)
+        #calculate for each X,Y
+        for idx in range(10):
+            #process missing value
+            cutmv = np.array(df_tmp.iloc[:, idx].loc[(df!=0).any(axis=1)]).flatten()
+            #get data after process missing value (X,Y value for each parts)
+            data[idx] = np.append(data[idx], cutmv)
 
-dist_frame.drop(columns='Nos', inplace=True)
+            #Min-Max Scaler (when data size is bigger than 1)
+            if len(cutmv) > 1:
+                scaled = scaler.fit_transform(cutmv.reshape(-1,1))
+            else:                
+                scaled = np.array([])
+            
+            #add to X, Y
+            if idx%2:
+                Y_data = np.append(Y_data, scaled)
+            else:
+                X_data = np.append(X_data, scaled)
 
-# -1을 NaN으로 변경
-dist_frame = dist_frame.replace(-1, np.NaN)
+        #get standard deviation
+        x_std = np.append(x_std, np.std(X_data))
+        y_std = np.append(y_std, np.std(Y_data))
 
-### 열 별로 정규화 + variance
-for i in (dist_frame.columns):
-    dist_frame[i] = pd.DataFrame(StandardScaler(with_mean=True, with_std=True).fit_transform(np.array(dist_frame[i]).reshape(-1, 1)), columns=[i])
-    var_dict[i] = cal_var(dist_frame[i], 50)
+        i += cut_num
+        
+    return data, x_std, y_std
 
-var_df = pd.DataFrame(var_dict)
-var_df['label'] = int(args.rawroot[-1])
-var_df.to_pickle('data_prepared/' + args.rawroot[:-2] + '.pkl')
+##main
+
+#read pickle
+df_raw = pd.read_pickle('../0-data/data_pickle/'+args.file+'.pkl')
+df_top, df_mid = rearrange(df_raw)
+
+#get standard deviation from top & mid
+data_top, top_x_std, top_y_std = get_std(df_top, 1000)
+data_mid, mid_x_std, mid_y_std = get_std(df_mid, 1000)
+
+#data merge for dnn
+input_data = np.concatenate((top_x_std.reshape(-1,1), top_y_std.reshape(-1,1), mid_x_std.reshape(-1,1), mid_y_std.reshape(-1,1)), axis=1)
+df_prepared = pd.DataFrame(input_data, columns=['Top_X','Top_Y','Mid_X','Mid_Y'])
+#add label
+df_prepared['label'] = int(args.file[-1])
+
+#save to pickle
+df_prepared.to_pickle('../0-data/data_prepared/'+args.file[:-2]+'.pkl')
+
+print(df_prepared)
