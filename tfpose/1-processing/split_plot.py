@@ -15,11 +15,11 @@ df_c = df[df['label']==1]
 df_nc = df[df['label']==0]
 
 fig, axes = plt.subplots(nrows=2, ncols=4)      
-nbin = 25
+nbin = 50
 
 def draw1dHist(data, row):
     for i in range(4):
-        axes[row, i].hist(data[data.columns[i]], bins=nbin)
+        axes[row, i].hist(data[data.columns[i]], bins=nbin, range=(0.01, 0.3))
         axes[row, i].set_xlabel(data.columns[i] + '_' + str(row))
         axes[row, i].set_ylabel('Num')
 
