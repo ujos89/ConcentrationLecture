@@ -30,27 +30,37 @@ gpu: GTX 1060 6GB
     - pandas      1.1.1
     - sklearn     0.23.2
 
+
+
 ### Step1. Video data to Pickle (video2pickle.py)
 ```sh
 $ python3 video2pickle.py --video [video_name] --savefile [file_name_to_save]
 ```
 We used [ildoonet/tf-pose-estimation](https://github.com/ildoonet/tf-pose-estimation.git) to extract each body part informations
 save informations to pickle 
+
+
+
 ### Step2. Data Preprocessing (preprocessing.py)
 ```sh
 $ python3 preprocessing.py --rawroot [raw_file_name]
 ```
 In preprocessing.py...
-- For each frame, we measured the distance to the nose from each of the 12 upper body parts by using L2-norm.
-- For each part, fill missing data with median values and apply normalization.
-- Calculate the variation of each part for every 100 frames and add labels.
-- One row becomes one data.
+- For each column of raw pickle data, drop missing data, and apply min-max normalize.
+- Some body parts are concatenated to create a top and mid-data frame.
+- top: Nos, Lea, Ley, Rea, Rey
+- mid: Nec, Lel, Lsh, Rel, Rsh
+- Calculate the variations of the top and mid part per every 100 frames and add labels.
+
+
 
 ### Step3. Merge prepared dataset & Shuffle
 ```sh
 $ python3 build_trainset.py --name [person_initial] --index [index_number] 
 ```
 merge dataset and shuffle to prevent biased labeled value
+
+
 
 ### Step4. Training DNN
 ```sh
@@ -59,6 +69,8 @@ $ python3 run_dnn.py --file [name of pickle] --plot [graph_idx] --size [dataset_
 - 1st layer: dimension:11, activation: relu
 - 2nd layer: dimension:32, activation: relu
 - 3rd layer: dimension:1, activation: sigmoid
+
+
 
 ### Step5. Analysis
 compared between size of data
