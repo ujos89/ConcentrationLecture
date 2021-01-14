@@ -17,10 +17,12 @@ df_nc = pd.read_pickle('../0-data/data_prepared/'+args.nc)      # ( , 5)
 # topX, topY, midX, midY, top, mid, total
 fig, axes = plt.subplots(nrows=2, ncols=7)      
 
+print(df_c.iloc[:,0])
+
 # define concatenation function
 def concatData(data):
-    dataT = pd.concat([data.iloc[:, 0], data.iloc[:, 1]])
-    dataM = pd.concat([data.iloc[:, 2], data.iloc[:, 3]])
+    dataT = pd.concat([data.iloc[:, 0], data.iloc[:, 1]], ignore_index=True)
+    dataM = pd.concat([data.iloc[:, 2], data.iloc[:, 3]], ignore_index=True)
     dataTotal = pd.concat([dataT, dataM])
     
     return dataT, dataM, dataTotal
@@ -29,19 +31,19 @@ def concatData(data):
 def drawStdHist(data, row):
     dataT, dataM, dataTotal = concatData(data)    
     for i in range(4):
-        axes[row, i].hist(data.iloc[i])
+        axes[row, i].hist(data.iloc[:, i], range=(0, 1))
         axes[row, i].set_xlabel(data.columns[i] + '_' + str(row), fontsize=10)
         axes[row, i].set_ylabel('Num', fontsize=10)
     
-    axes[row, 4].hist(dataT)
+    axes[row, 4].hist(dataT, range=(0, 1))
     axes[row, 4].set_xlabel('Top_' + str(row), fontsize=10)
     axes[row, 4].set_ylabel('Num', fontsize=10)
 
-    axes[row, 5].hist(dataM)
+    axes[row, 5].hist(dataM, range=(0, 1))
     axes[row, 5].set_xlabel('Mid_' + str(row), fontsize=10)
     axes[row, 5].set_ylabel('Num', fontsize=10)
     
-    axes[row, 6].hist(dataTotal)
+    axes[row, 6].hist(dataTotal, range=(0, 1))
     axes[row, 6].set_xlabel('Total_' + str(row), fontsize=10)
     axes[row, 6].set_ylabel('Num', fontsize=10)
 
@@ -51,4 +53,3 @@ drawStdHist(df_c, 1)
 drawStdHist(df_nc, 0)
 
 plt.show()
-
