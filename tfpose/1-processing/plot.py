@@ -10,6 +10,7 @@ mid = ["Nec_X","Nec_Y","Lsh_X","Lsh_Y","Rsh_X","Rsh_Y","Lel_X","Lel_Y","Rel_X","
 
 parser = argparse.ArgumentParser(description='for preprocessing tfpose data...')
 parser.add_argument('--file', type=str, default='', help='raw (pickle)data path and name with ".pkl"')
+parser.add_argument('--num', type=int, help='use only [num]-frames')
 args = parser.parse_args()
 
 # read pickle data
@@ -18,6 +19,10 @@ df_raw = pd.read_pickle('../0-data/data_pickle/'+args.file)
 # make top, mid data
 data_top = df_raw[top].to_numpy()
 data_mid = df_raw[mid].to_numpy()
+
+if args.num:
+    data_top = data_top[:args.num]
+    data_mid = data_mid[:args.num]
 
 top_len = len(top)
 mid_len = len(mid)
