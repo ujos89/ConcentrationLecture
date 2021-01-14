@@ -27,27 +27,28 @@ def concatData(data):
     
     return dataT, dataM, dataTotal
 
+
 # define drawing std 1-D histogram function
 def drawStdHist(data, row):
     dataT, dataM, dataTotal = concatData(data)    
     for i in range(4):
-        axes[row, i].hist(data.iloc[:, i], range=(0, 1))
+        axes[row, i].hist(data.iloc[:, i], range=(0, 1), bins =nBins)
         axes[row, i].set_xlabel(data.columns[i] + '_' + str(row), fontsize=10)
         axes[row, i].set_ylabel('Num', fontsize=10)
     
-    axes[row, 4].hist(dataT, range=(0, 1))
+    axes[row, 4].hist(dataT, range=(0, 1), bins = nBins)
     axes[row, 4].set_xlabel('Top_' + str(row), fontsize=10)
     axes[row, 4].set_ylabel('Num', fontsize=10)
 
-    axes[row, 5].hist(dataM, range=(0, 1))
+    axes[row, 5].hist(dataM, range=(0, 1), bins = nBins)
     axes[row, 5].set_xlabel('Mid_' + str(row), fontsize=10)
     axes[row, 5].set_ylabel('Num', fontsize=10)
     
-    axes[row, 6].hist(dataTotal, range=(0, 1))
+    axes[row, 6].hist(dataTotal, range=(0, 1), bins =nBins)
     axes[row, 6].set_xlabel('Total_' + str(row), fontsize=10)
     axes[row, 6].set_ylabel('Num', fontsize=10)
 
-
+nBins = 50
 # draw
 drawStdHist(df_c, 1)
 drawStdHist(df_nc, 0)
