@@ -1,15 +1,23 @@
+import argparse
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib
-import preprocessing as pp
-#import test_pre as pp
+import pandas as pd
 
-# from preprocessing.py
-data_top = pp.data_top
-data_mid = pp.data_mid
 
-top = pp.df_top.columns
-mid = pp.df_mid.columns
+top = ["Nos_X","Nos_Y","Ley_X","Ley_Y","Rey_X","Rey_Y","Lea_X","Lea_Y","Rea_X","Rea_Y"]
+mid = ["Nec_X","Nec_Y","Lsh_X","Lsh_Y","Rsh_X","Rsh_Y","Lel_X","Lel_Y","Rel_X","Rel_Y"]
+
+parser = argparse.ArgumentParser(description='for preprocessing tfpose data...')
+parser.add_argument('--file', type=str, default='', help='raw (pickle)data path and name with ".pkl"')
+args = parser.parse_args()
+
+# read pickle data
+df_raw = pd.read_pickle('../0-data/data_pickle/'+args.file)
+
+# make top, mid data
+data_top = df_raw[top].to_numpy()
+data_mid = df_raw[mid].to_numpy()
 
 top_len = len(top)
 mid_len = len(mid)
@@ -20,22 +28,21 @@ fig, axes = plt.subplots(nrows=2, ncols=9)
 # top = ["Nos_X","Nos_Y","Ley_X","Ley_Y","Rey_X","Rey_Y","Lea_X","Lea_Y","Rea_X","Rea_Y"]
 # mid = ["Nec_X","Nec_Y","Lsh_X","Lsh_Y","Rsh_X","Rsh_Y","Lel_X","Lel_Y","Rel_X","Rel_Y"]
 
-
 # define concat function
 def concat_part(data, len):
     data_X = np.array([])
     data_Y = np.array([])
     for i in range(len//2):
-        data_X = np.append(data_X, data[2*i])
-        data_Y = np.append(data_Y, data[2*i+1])
+        data_X = np.append(data_X, data[:,2*i])
+        data_Y = np.append(data_Y, data[:,2*i+1])
     
     return data_X, data_Y
 
 # define draw 2d-histogram function
 def drawPart2dHist(data, len, row, part):    
     for i in range (len//2):
-        X = data[2*i]
-        Y = data[2*i + 1]
+        X = data[:,2*i]
+        Y = data[:,2*i + 1]
         
         # 마이너스 붙여서 화면에서 처럼 보이게 할지 그냥 0, 1 사이로 할지는 나중에~
         axes[row, i].hist2d(X[np.where(X != 0)], -Y[np.where(Y != 0)], bins=nbins, range=[[0, 1], [-1, 0]])
