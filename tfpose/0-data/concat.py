@@ -18,6 +18,6 @@ for f in add_file:
     df = pd.read_pickle(args.folder+'/'+f)
     df_merged = pd.concat([df_merged,df])
 
-df_merged.reset_index(drop=True)
+df_merged = df_merged.reset_index(drop=True)
 
 df_merged.to_pickle('data_pickle/'+args.file+'_'+str(args.label)+'.pkl')

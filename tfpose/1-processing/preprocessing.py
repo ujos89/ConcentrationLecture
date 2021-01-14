@@ -20,17 +20,16 @@ def rearrange(df_raw):
 
 #get variance by divided data
 def get_std(df, cut):
-    #(X,Y)*5 for plot
-    data = [np.array([])for _ in range(10)]
     #x,y variance for training
     x_std = np.array([])
     y_std = np.array([])
-    i = 0
-    scaler = preprocessing.MinMaxScaler()
-    
-    while i <= len(df):
+    #scaler = preprocessing.MinMaxScaler()
+    i, status = 0, 0
+    len_df = len(df)
+
+    while i <= len_df:
         #cut data to get variacne
-        if i + cut <= len(df):
+        if i + cut <= len_df:
             df_tmp = df[i:i+cut]
         #remove remained data after cut
         else:
@@ -42,14 +41,15 @@ def get_std(df, cut):
         #calculate for each X,Y
         for idx in range(10):
             #process missing value
-            cutmv = np.array(df_tmp.iloc[:, idx].loc[(df!=0).any(axis=1)]).flatten()
-            #get data after process missing value (X,Y value for each parts)
-            data[idx] = np.append(data[idx], cutmv)
+            cutmv = np.array(df_tmp.iloc[:, idx].loc[(df_tmp!=0).any(axis=1)]).flatten()
 
-            #Min-Max Scaler (when data size is bigger than 1)
-            if len(cutmv) > 1:
-                scaled = scaler.fit_transform(cutmv.reshape(-1,1))
-            else:                
+            #make mean of value to zero
+            if len(cutmv) > 0:
+                scaled = cutmv - np.mean(cutmv)
+                #Min-Max Scaler (when data size is bigger than 1)
+                #scaled = scaler.fit_transform(cutmv.reshape(-1,1))
+            else:
+                #If all value in cut are 0, replace with Nan
                 scaled = np.array([])
             
             #add to X, Y
@@ -62,10 +62,15 @@ def get_std(df, cut):
         x_std = np.append(x_std, np.std(X_data))
         y_std = np.append(y_std, np.std(Y_data))
 
+        #print status progress
+        if(status < i/len_df*10):
+            status += 1
+            print("Progress: ", (i/len_df*100)//1, "%")
+
         i += cut
 
     #output data type: numpy array    
-    return data, x_std, y_std
+    return x_std, y_std
 
 def file_preprocessing(file_, cut):
     #read pickle
@@ -73,8 +78,8 @@ def file_preprocessing(file_, cut):
     df_top, df_mid = rearrange(df_raw)
 
     #get standard deviation from top & mid
-    data_top, top_x_std, top_y_std = get_std(df_top, cut)
-    data_mid, mid_x_std, mid_y_std = get_std(df_mid, cut)
+    top_x_std, top_y_std = get_std(df_top, cut)
+    mid_x_std, mid_y_std = get_std(df_mid, cut)
 
     #data merge for dnn
     input_data = np.concatenate((top_x_std.reshape(-1,1), top_y_std.reshape(-1,1), mid_x_std.reshape(-1,1), mid_y_std.reshape(-1,1)), axis=1)
@@ -85,7 +90,6 @@ def file_preprocessing(file_, cut):
     #output datatype: pandas datafame
     return df_prepared
 
-
 ##main
 
 #case1: preprocessing for file
@@ -93,7 +97,7 @@ if args.file:
     df_prepared = file_preprocessing(args.file, args.cut)
 
     #save to pickle
-    df_prepared.to_pickle('../0-data/data_prepared/'+args.file[:-6]+'.pkl')
+    df_prepared.to_pickle('../0-data/data_prepared/'+args.file[:-6]+'_'+str(args.cut)+'.pkl')
 
 elif args.name:
     #file list to merge
@@ -106,6 +110,7 @@ elif args.name:
     #preprocessing and merge
     df_merged = pd.DataFrame()
     for _ in file_list:
+        print("filename",_)
         df_prepared = file_preprocessing(_, args.cut)
         df_merged = pd.concat([df_merged, df_prepared])
 
@@ -113,4 +118,4 @@ elif args.name:
     df_merged = df_merged.sample(frac=1, random_state=42).reset_index(drop=True)
 
     #save to pickle
-    df_merged.to_pickle('../0-data/data_prepared/merged/'+args.name+'_merged.pkl')
+    df_merged.to_pickle('../0-data/data_prepared/merged/'+args.name+'_'+str(args.cut)+'.pkl')
