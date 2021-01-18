@@ -47,28 +47,30 @@ def drawStdHist(data, row):
         axes[row, i].set_xlabel(data.columns[i] + '_' + str(row), fontsize=10)
         axes[row, i].set_ylabel('Num', fontsize=10)
     
-    axes[row, 4].hist(dataT, range=(0, 0.6), bins=nbin)
+    axes[row, 4].hist(dataT, range=(0.05, 0.6), bins=nbin)
     axes[row, 4].set_xlabel('Top_' + str(row), fontsize=10)
     axes[row, 4].set_ylabel('Num', fontsize=10)
 
-    axes[row, 5].hist(dataM, range=(0, 0.6), bins=nbin)
+    axes[row, 5].hist(dataM, range=(0.05, 0.6), bins=nbin)
     axes[row, 5].set_xlabel('Mid_' + str(row), fontsize=10)
     axes[row, 5].set_ylabel('Num', fontsize=10)
     
-    axes[row, 6].hist(dataTotal, range=(0, 0.6), bins=nbin)
+    axes[row, 6].hist(dataTotal, range=(0.05, 0.6), bins=nbin)
     axes[row, 6].set_xlabel('Total_' + str(row), fontsize=10)
     axes[row, 6].set_ylabel('Num', fontsize=10)
 
 
 # drop NaN
 df_c = df_c.dropna(axis=0)
-df_nc = df_c.dropna(axis=0)
+df_nc = df_nc.dropna(axis=0)
 
 # draw
 drawStdHist(df_c, 1)
 drawStdHist(df_nc, 0)
 
-print(df_c.describe())
-print(df_nc.describe())
+#print(df_c.describe())
+#print(df_nc.describe())
+print(df_c)
+print(df_nc)
 
 plt.show()
