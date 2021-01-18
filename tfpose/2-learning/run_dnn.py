@@ -13,13 +13,12 @@ parser = argparse.ArgumentParser(description='for running DNN...')
 parser.add_argument('--file', type=str, required=True, help='name of file')
 parser.add_argument('--plot', type=str, default='0', help='choose plot graph')
 parser.add_argument('--size', type=int, default=0, help='choose size of dataset')
-parser.add_argument('--epoch', type=int, default=100, help='number of iterations')
+parser.add_argument('--epoch', type=int, default=1000, help='number of iterations')
 args = parser.parse_args()
 
 #build dataset
-#kjk size:2010
 def build_dataset(cnt):
-    rawdata = pd.read_pickle("./train_set/" + args.file + ".pkl")
+    rawdata = pd.read_pickle("../0-data/data_prepared/" + args.file)
     if cnt > len(rawdata):
         return pd.DataFrame()
     elif cnt == 0:
@@ -31,12 +30,12 @@ def build_dataset(cnt):
 def build_model():
     model = keras.Sequential([
         layers.Dense(len(train_dataset.keys()), activation='relu', input_shape=[len(train_dataset.keys())]),
-        #layers.Dense(32, activation='relu'),
+        layers.Dense(16, activation = 'sigmoid'),
         layers.Dense(1, activation='sigmoid')
     ])
     #keras.optimizers.RMSprop(0.1)
     keras.optimizers.Adam(lr=0.001)
-    model.compile(loss='binary_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
+    model.compile(loss='binary_crossentropy', optimizer = 'adam', metrics = ['mse','accuracy', 'binary_crossentropy'])
     #metrics = ['mae', 'mse','accuracy'])
     return model
 
@@ -46,48 +45,57 @@ class PrintDot(keras.callbacks.Callback):
         if epoch % 100 == 0: print('')
         print('.', end='')
 
-#calculate accuracy
+#calculate accuracy and build predcition&label set
 def cal_accuracy(test_labels, test_predictions):
     answer = test_labels.to_numpy()
-    tp_set = np.concatenate((np.reshape(test_predictions, (test_predictions.shape[0], 1)), np.reshape(answer, (answer.shape[0], 1))) , axis=1)
-    
+    pl_set = np.concatenate((np.reshape(test_predictions, (test_predictions.shape[0], 1)), np.reshape(answer, (answer.shape[0], 1))) , axis=1)
+    '''
     #cal standard
-    sorted_predictions = np.sort(tp_set)
+    sorted_predictions = np.sort(pl_set)
     standard_idx = np.sum(test_labels)-1
     standard = sorted_predictions[standard_idx,0]
     #print(standard)
-
+    '''
+    standard = 0.5
     true_cnt = 0
-    for tp in tp_set:
-        if tp[0] <= standard and tp[1] == 0:
+    for pl in pl_set:
+        if pl[0] <= standard and pl[1] == 0:
             true_cnt += 1
-        elif tp[0] > standard and tp[1] == 1:
+        elif pl[0] > standard and pl[1] == 1:
             true_cnt += 1
 
     accuracy = true_cnt / len(test_labels) * 100
-    return tp_set, accuracy
+    return pl_set, accuracy
 
-#Graph of epoch vs. mse for trainset, val_set 
+#Graph of epoch vs. binary_crossentropy for trainset, val_set 
 def plot_history1(history):
     hist = pd.DataFrame(history.history)
     hist['epoch'] = history.epoch
     plt.xlabel('Epoch')
-    plt.ylabel('Mean Square Error')
-    plt.scatter(hist['epoch'], hist['mean_squared_error'], label='Train Error')
-    plt.scatter(hist['epoch'], hist['val_mean_squared_error'], label = 'Val Error')
+    plt.ylabel('binary_crossentropy')
+    plt.scatter(hist['epoch'], hist['binary_crossentropy'], label='Train Error')
+    plt.scatter(hist['epoch'], hist['val_binary_crossentropy'], label = 'Val Error')
     plt.legend()
     plt.show()
 
-#(optional)Visualizing evaluation of model using test data
-def plot_history2(test_labels, test_predictions, test_dataset, model):
-    plt.scatter(test_labels, test_predictions)
-    plt.xlabel('True Values [MPG]')
-    plt.ylabel('Predictions [MPG]')
-    plt.axis('equal')
-    plt.axis('square')
-    plt.xlim([0, plt.xlim()[1]])
-    plt.ylim([0, plt.ylim()[1]])
-    _=plt.plot([-100,100], [-100,100])
+#Test prediction histogram of label 1, 0
+def plot_history2(test_labels, test_predictions, model):
+    test_labels_ = np.array(test_labels)
+    test_data = np.concatenate((test_predictions.reshape(-1,1), test_labels_.reshape(-1,1)),axis=1)
+    test_data = pd.DataFrame({'test_predictions':test_data[:,0], 'test_labels':test_data[:,1]})
+    df1 = test_data[test_data['test_labels']==1]
+    df0 = test_data[test_data['test_labels']==0]
+
+    fig, axes = plt.subplots(1,2)
+
+    df1.hist('test_predictions', bins=100, ax=axes[1])
+    df0.hist('test_predictions', bins=100, ax=axes[0])
+
+    axes[0].set_title("Label 0")
+    axes[0].set_xlabel("test_predictions")
+    axes[1].set_title("Label 1")
+    axes[1].set_xlabel("test_predictions")
+
     plt.show()
 
 #(optional)Visualizes error distribution using histogram
@@ -98,10 +106,8 @@ def plot_history3(test_predictions, test_labels, hist):
     _=plt.ylabel("Count")
     plt.show()
 
-#historgram for test prediction
 
 ##main
-
 #split test, train set(X: train_dataset)
 dataset = build_dataset(args.size)
 X = dataset.sample(frac=0.8, random_state = 0)
@@ -116,8 +122,7 @@ skf = StratifiedKFold(n_splits=5, random_state=42)
 
 #deep learning for each k-folded set
 accuracy = []
-tp_df = pd.DataFrame()
-i = 0
+i=0
 
 for train_idx, val_idx in skf.split(X, y): 
     train_dataset, val_dataset = X.iloc[train_idx], X.iloc[val_idx]
@@ -132,31 +137,29 @@ for train_idx, val_idx in skf.split(X, y):
 
     #calculate prediction
     test_predictions = model.predict(test_dataset).flatten()
-    tp_set, tmp_accuracy = cal_accuracy(test_labels, test_predictions)
+    pl_set, tmp_accuracy = cal_accuracy(test_labels, test_predictions)
     accuracy.append(tmp_accuracy)
-    #print(tp_set[-10:])
+    print(pl_set[-100:])
     print("accuracy: ",tmp_accuracy,"%")
 
-    #extract tp_set
-    column_name = ['predcition('+str(i+1)+'-fold)','label('+str(i+1)+'-fold)']
-    tp_tmp = pd.DataFrame(tp_set, columns=column_name)
-    tp_df = pd.concat([tp_df, tp_tmp], axis=1)
-    i += 1
+    #extract pl_set to pickle
+    pl_df = pd.DataFrame(pl_set, columns=['prediction','label'])
+    #print(pl_df)
+    pl_df.to_pickle('../0-data/data_prediction/'+args.file[:-4]+'('+str(i)+')_'+str(tmp_accuracy//0.01/100)+'.pkl')
 
     #visualize graph
     hist = pd.DataFrame(history.history)
+    print(hist)
     hist['epoch']= history.epoch
     plot = list(map(int, args.plot.split(',')))
     for idx in plot:
         if idx == 1:
             plot_history1(history)
         elif idx == 2:
-            plot_history2(test_labels, test_predictions, test_dataset, model)
+            plot_history2(test_labels, test_predictions, model)
         elif idx == 3:
             plot_history3(test_predictions, test_labels, hist)
-
-#save predictions label to pickle
-tp_df.to_pickle('./analysis/'+args.file+'.pkl')
+    i+=1
 
 #print accuracy for each fold
 print("accuracy for each fold")

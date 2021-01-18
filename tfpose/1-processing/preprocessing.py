@@ -90,7 +90,62 @@ def file_preprocessing(file_, cut):
     #output datatype: pandas datafame
     return df_prepared
 
-##main
+def rearrange_dis(df_raw):
+    use = ["Nos_X","Nos_Y","Ley_X","Ley_Y","Rey_X","Rey_Y","Lea_X","Lea_Y","Rea_X","Rea_Y","Nec_X","Nec_Y","Lsh_X","Lsh_Y","Rsh_X","Rsh_Y","Lel_X","Lel_Y","Rel_X","Rel_Y"]
+
+    return df_raw[use]
+
+def get_dis2std(df, cut):
+    use_parts = ["Nos","Ley","Rey","Lea","Rea","Nec","Lsh","Rsh","Lel","Rel",]
+    i, status = 0, 0
+    len_df = len(df)
+    #standard divation for distance of each parts (10 dimensions)
+    data = np.zeros((1,10))
+
+    while i <= len_df:
+        #cut data to get distance
+        if i + cut <= len_df:
+            df_tmp = df[i:i+cut]
+        #remove remained data after cut
+        else:
+            break
+
+        dis_points = np.array([])
+        #calculate distance for each points(10 points)
+        for idx in range(10):
+            #X,Y df for each
+            df_XY = df_tmp.iloc[:, idx*2:idx*2+2]
+            cutmv = np.array(df_XY[(df_XY != 0).all(1)])
+            
+            dis = np.array([-1])
+            if len(cutmv) > 1:
+                #get average position for each parts
+                avg_pos = np.average(cutmv, axis=0)
+
+                #get distance (L2 norm)
+                for pos_xy in cutmv:
+                    dis_tmp = np.sqrt(np.sum(np.square(pos_xy-avg_pos)))
+                    dis = np.append(dis, dis_tmp)
+                
+                #get standard deviation
+                dis = np.std(dis)
+                
+            #dis==-1 => no data in cut range
+            dis_points = np.append(dis_points, dis)
+        
+        #process -1
+        mv_idx = np.where(dis_points==-1)[0]
+        if len(mv_idx) > 0:
+            dis_points[np.where(dis_points==-1)[0]] = np.average(dis_points[np.where(dis_points!=-1)[0]])
+        data = np.concatenate((data, dis_points.reshape(1,-1)), axis=0)
+        
+        i += cut
+
+    df_prepared = pd.DataFrame(data[1:], columns=use_parts)
+    return df_prepared
+
+
+##main(std)
 
 #case1: preprocessing for file
 if args.file:
@@ -119,3 +174,16 @@ elif args.name:
 
     #save to pickle
     df_merged.to_pickle('../0-data/data_prepared/merged/'+args.name+'_'+str(args.cut)+'.pkl')
+'''
+#main(dis2std)
+if args.file:
+    df_raw = pd.read_pickle('../0-data/data_pickle/'+args.file)
+    df_rearrange = rearrange_dis(df_raw)
+    df_prepared = get_dis2std(df_rearrange, args.cut)
+    
+    #add label
+    df_prepared['label'] = int(args.file[-5])
+    
+    #save to pickle
+    df_prepared.to_pickle('../0-data/data_prepared/dis2std/'+args.file[:-6]+'_'+str(args.cut)+'.pkl')
+'''
