@@ -18,7 +18,7 @@ df_nc = pd.read_pickle('../0-data/data_prepared/'+args.nc)      # ( , 5)
 
 # topX, topY, midX, midY
 fig, axes = plt.subplots(nrows=2, ncols=4)      
-nbin = 60
+nbin = 15
 
 # define concatenation function
 def concatData(data):
@@ -67,26 +67,34 @@ df_c = df_c.dropna(axis=0)
 df_nc = df_nc.dropna(axis=0)
 
 # print before scaler
-print(df_c.describe())
-print(df_nc.describe())
+# print(df_c.describe())
+# print(df_nc.describe())
 
+# 기존에 했던 문제가 전체를 그냥 정규화해버림
+# 그래서 각 colum마다 정규화하니까, describe로는 잘 보이는데 눈에는 잘 안 보임ㅠㅠ
 # standardScaler
 if args.scaler:
     standardScaler = StandardScaler()
-    df_c = pd.DataFrame(standardScaler.fit_transform(df_c), columns=df_c.columns)
-    df_nc = pd.DataFrame(standardScaler.fit_transform(df_nc), columns=df_nc.columns)
+    df = pd.concat([df_c, df_nc])
+    for i in df.columns[:-1]:
+        df[i] = (df[i] - df[i].mean()) / df[i].std()
+        # df_c[i] = (df_c[i] - df_c[i].mean()) / df_c[i].std()
+        # df_nc[i] = (df_nc[i] - df_nc[i].mean()) / df_nc[i].std()
+    #df_c = pd.DataFrame(standardScaler.fit_transform(df_c))
+    #df_nc = pd.DataFrame(standardScaler.fit_transform(df_nc))
+    
+    # print(df.describe())
+    df_c = df[df['label'] == 1]
+    df_nc = df[df['label'] == 0]
 
-# robustScaler
-'''robustScaler = RobustScaler()
-df_c = pd.DataFrame(robustScaler.fit_transform(df_c), columns = df_c.columns)
-df_nc = pd.DataFrame(robustScaler.fit_transform(df_nc), columns = df_nc.columns)'''
-
-# draw
-drawStdHist(df_c, 1, 0, 1)
-drawStdHist(df_nc, 0, 0, 0.3)
-
-# print after scaler
 print(df_c)
 print(df_nc)
+
+print(df_c.describe())
+print(df_nc.describe())
+
+# draw
+drawStdHist(df_c, 1, -5, 5)
+drawStdHist(df_nc, 0, -5, 5)
 
 plt.show()

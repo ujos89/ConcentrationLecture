@@ -19,7 +19,7 @@ df_nc = pd.read_pickle('../0-data/data_pickle/'+args.nc)
 
 # neckx, necky
 fig, axes = plt.subplots(nrows=2, ncols=2)      
-nbin = 20
+nbin = 60
 
 df_c = df_c[['Nec_X', 'Nec_Y']]
 df_nc = df_nc[['Nec_X', 'Nec_Y']]
@@ -39,7 +39,7 @@ def getStd(data, num):
         else:
             break
 
-    return stdX, stdY
+    return pd.DataFrame(stdX, columns=['stdX']), pd.DataFrame(stdY, columns=['stdY'])
     
 # define drawing std 1-D histogram function
 def drawStdHist(dataX, dataY, row, rangemin, rangemax):
@@ -52,20 +52,35 @@ def drawStdHist(dataX, dataY, row, rangemin, rangemax):
             label = 'Nec_Y'
 
         axes[row, i].hist(data, range=(rangemin, rangemax), bins=nbin)
-        axes[row, i].set_xlabel(label + '_' + str(row), fontsize=15)
-        axes[row, i].set_ylabel('Num', fontsize=15)
+        axes[row, i].set_xlabel(label + '_' + str(row), fontsize=10)
+        axes[row, i].set_ylabel('Num', fontsize=10)
 
 c_stdX, c_stdY = getStd(df_c, args.num)
 nc_stdX, nc_stdY = getStd(df_nc, args.num)
 
+df_c = pd.concat([c_stdX, c_stdY], axis=1)
+df_c['label'] = 1
+df_nc = pd.concat([nc_stdX, nc_stdY], axis=1)
+df_nc['label'] = 0
+
 if args.scaler:
-    standardScaler = StandardScaler()
-    c_stdX = (standardScaler.fit_transform(c_stdX.reshape(-1, 1)))
-    c_stdY = (standardScaler.fit_transform(c_stdY.reshape(-1, 1)))
-    nc_stdX = (standardScaler.fit_transform(nc_stdX.reshape(-1, 1)))
-    nc_stdY = (standardScaler.fit_transform(nc_stdY.reshape(-1, 1)))
+    df = pd.concat([df_c, df_nc])
     
-drawStdHist(c_stdX, c_stdY, 1, 0, 0.5)        # concentrate
-drawStdHist(nc_stdX, nc_stdY, 0, 0, 0.5)      # not concentrate
+    for i in df.columns[:-1]:
+        df[i] = (df[i] - df[i].mean()) / df[i].std()
+    
+    df_c = df[df['label'] == 1]
+    df_nc = df[df['label'] == 0]
+
+print(df_c)
+print(df_nc)
+
+print(df_c.describe())
+print(df_nc.describe())
+
+
+drawStdHist(df_c['stdX'], df_c['stdY'], 1, 0, 0.5)        # concentrate
+drawStdHist(df_nc['stdX'], df_nc['stdY'], 0, 0, 0.5)      # not concentrate
+
 
 plt.show()
