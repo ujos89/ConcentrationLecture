@@ -19,7 +19,7 @@ df_nc = pd.read_pickle('../0-data/data_pickle/'+args.nc)
 
 # neckx, necky
 fig, axes = plt.subplots(nrows=2, ncols=2)      
-nbin = 60
+nbin = 50
 
 df_c = df_c[['Nec_X', 'Nec_Y']]
 df_nc = df_nc[['Nec_X', 'Nec_Y']]
@@ -79,8 +79,8 @@ print(df_c.describe())
 print(df_nc.describe())
 
 
-drawStdHist(df_c['stdX'], df_c['stdY'], 1, 0, 0.5)        # concentrate
-drawStdHist(df_nc['stdX'], df_nc['stdY'], 0, 0, 0.5)      # not concentrate
+drawStdHist(df_c['stdX'], df_c['stdY'], 1, -1, 1)        # concentrate
+drawStdHist(df_nc['stdX'], df_nc['stdY'], 0, -1, 1)      # not concentrate
 
 
 plt.show()

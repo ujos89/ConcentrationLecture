@@ -27,16 +27,24 @@ histo = histo[histo.X != 0]
 histo = histo[histo.Y != 0]
 
 print(histo)
-fig = px.density_heatmap(histo, x="X", y="Y", marginal_x="histogram", marginal_y="histogram",nbinsx=50, nbinsy=50)
+'''fig = px.density_heatmap(histo, x="X", y="Y", marginal_x="histogram", marginal_y="histogram",nbinsx=50, nbinsy=50)
 
 fig.update_layout(
     font=dict(
         family="Times",
         size=25)
-)
-fig.show()
+)'''
 
 
+# fig.show()
+nbins=30
+plt.hist2d(histo['X'], histo['Y'], bins=nbins)
+cb = plt.colorbar()
+cb.set_label('Number of entries')
+
+plt.xlabel('x axis')
+plt.ylabel('y axis')
+plt.show()
 
 
 
