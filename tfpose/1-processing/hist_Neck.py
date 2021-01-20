@@ -19,7 +19,7 @@ df_nc = pd.read_pickle('../0-data/data_pickle/'+args.nc)
 
 # neckx, necky
 fig, axes = plt.subplots(nrows=2, ncols=2)      
-nbin = 100
+nbin = 20
 
 df_c = df_c[['Nec_X', 'Nec_Y']]
 df_nc = df_nc[['Nec_X', 'Nec_Y']]
@@ -52,8 +52,8 @@ def drawStdHist(dataX, dataY, row, rangemin, rangemax):
             label = 'Nec_Y'
 
         axes[row, i].hist(data, range=(rangemin, rangemax), bins=nbin)
-        axes[row, i].set_xlabel(label + '_' + str(row), fontsize=10)
-        axes[row, i].set_ylabel('Num', fontsize=10)
+        axes[row, i].set_xlabel(label + '_' + str(row), fontsize=15)
+        axes[row, i].set_ylabel('Num', fontsize=15)
 
 c_stdX, c_stdY = getStd(df_c, args.num)
 nc_stdX, nc_stdY = getStd(df_nc, args.num)
@@ -65,8 +65,7 @@ if args.scaler:
     nc_stdX = (standardScaler.fit_transform(nc_stdX.reshape(-1, 1)))
     nc_stdY = (standardScaler.fit_transform(nc_stdY.reshape(-1, 1)))
     
-
-drawStdHist(c_stdX, c_stdY, 1, 0, 1)
-drawStdHist(nc_stdX, nc_stdY, 0, 0, 1)
+drawStdHist(c_stdX, c_stdY, 1, 0, 0.5)        # concentrate
+drawStdHist(nc_stdX, nc_stdY, 0, 0, 0.5)      # not concentrate
 
 plt.show()

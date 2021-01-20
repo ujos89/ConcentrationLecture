@@ -82,7 +82,7 @@ df_c = pd.DataFrame(robustScaler.fit_transform(df_c), columns = df_c.columns)
 df_nc = pd.DataFrame(robustScaler.fit_transform(df_nc), columns = df_nc.columns)'''
 
 # draw
-drawStdHist(df_c, 1, 0, 0.05)
+drawStdHist(df_c, 1, 0, 1)
 drawStdHist(df_nc, 0, 0, 0.3)
 
 # print after scaler
