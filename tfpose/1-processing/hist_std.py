@@ -3,22 +3,21 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy.stats import norm
 from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import RobustScaler
 
 # parser
 parser = argparse.ArgumentParser(description='for preprocessing tfpose data...')
 parser.add_argument('--c', type=str, default='', help='raw (pickle)data path and name with ".pkl"')
 parser.add_argument('--nc', type=str, default='', help='raw (pickle)data path and name with ".pkl"')
+parser.add_argument('--scaler', type=int, default=0, help='0-nonscaler 1-scaler')
 args = parser.parse_args()
 
 # read pickle data
 df_c = pd.read_pickle('../0-data/data_prepared/'+args.c)        # ( , 5)
 df_nc = pd.read_pickle('../0-data/data_prepared/'+args.nc)      # ( , 5)
 
-# topX, topY, midX, midY, top, mid, total
-fig, axes = plt.subplots(nrows=2, ncols=7)      
+# topX, topY, midX, midY
+fig, axes = plt.subplots(nrows=2, ncols=4)      
 nbin = 60
 
 # define concatenation function
@@ -38,18 +37,18 @@ def funcFitGaus(dfInput):       # dfInput: dataframe
     return x, p, mu, std
 
 # define drawing std 1-D histogram function
-def drawStdHist(data, row):
-    dataT, dataM, dataTotal = concatData(data)    
+def drawStdHist(data, row, rangemin,rangemax):
+    # dataT, dataM, dataTotal = concatData(data)    
     
     for i in range(4):
-        axes[row, i].hist(data.iloc[:, i] ** 2, range=(0, 1), bins=nbin)
+        axes[row, i].hist(data.iloc[:, i], range=(rangemin, rangemax), bins=nbin)
         #x2, p2, mu2, std1 = funcFitGaus(data.iloc[:, i])
         #axes[row, i].plot(x2, p2, 'r', linewidth=2)
 
         axes[row, i].set_xlabel(data.columns[i] + '_' + str(row), fontsize=10)
         axes[row, i].set_ylabel('Num', fontsize=10)
     
-    axes[row, 4].hist(dataT, range=(0, 1), bins=nbin)
+    '''axes[row, 4].hist(dataT, range=(0, 1), bins=nbin)
     axes[row, 4].set_xlabel('Top_' + str(row), fontsize=10)
     axes[row, 4].set_ylabel('Num', fontsize=10)
 
@@ -59,44 +58,23 @@ def drawStdHist(data, row):
     
     axes[row, 6].hist(dataTotal, range=(0, 1), bins=nbin)
     axes[row, 6].set_xlabel('Total_' + str(row), fontsize=10)
-    axes[row, 6].set_ylabel('Num', fontsize=10)
+    axes[row, 6].set_ylabel('Num', fontsize=10)'''
 
 
-def drawStdHist2(data, row):
-    dataT, dataM, dataTotal = concatData(data)    
-    
-    for i in range(4):
-        axes[row, i].hist(data.iloc[:, i] ** 2, range=(0, 0.3), bins=nbin)
-        #x2, p2, mu2, std1 = funcFitGaus(data.iloc[:, i])
-        #axes[row, i].plot(x2, p2, 'r', linewidth=2)
-
-        axes[row, i].set_xlabel(data.columns[i] + '_' + str(row), fontsize=10)
-        axes[row, i].set_ylabel('Num', fontsize=10)
-    
-    axes[row, 4].hist(dataT, range=(0, 0.3), bins=nbin)
-    axes[row, 4].set_xlabel('Top_' + str(row), fontsize=10)
-    axes[row, 4].set_ylabel('Num', fontsize=10)
-
-    axes[row, 5].hist(dataM, range=(0, 0.3), bins=nbin)
-    axes[row, 5].set_xlabel('Mid_' + str(row), fontsize=10)
-    axes[row, 5].set_ylabel('Num', fontsize=10)
-    
-    axes[row, 6].hist(dataTotal, range=(0, 0.3), bins=nbin)
-    axes[row, 6].set_xlabel('Total_' + str(row), fontsize=10)
-    axes[row, 6].set_ylabel('Num', fontsize=10)
 
 # drop NaN
 df_c = df_c.dropna(axis=0)
 df_nc = df_nc.dropna(axis=0)
 
+# print before scaler
 print(df_c.describe())
 print(df_nc.describe())
 
-
 # standardScaler
-standardScaler = StandardScaler()
-df_c = pd.DataFrame(standardScaler.fit_transform(df_c), columns=df_c.columns)
-df_nc = pd.DataFrame(standardScaler.fit_transform(df_nc), columns=df_nc.columns)
+if args.scaler:
+    standardScaler = StandardScaler()
+    df_c = pd.DataFrame(standardScaler.fit_transform(df_c), columns=df_c.columns)
+    df_nc = pd.DataFrame(standardScaler.fit_transform(df_nc), columns=df_nc.columns)
 
 # robustScaler
 '''robustScaler = RobustScaler()
@@ -104,10 +82,11 @@ df_c = pd.DataFrame(robustScaler.fit_transform(df_c), columns = df_c.columns)
 df_nc = pd.DataFrame(robustScaler.fit_transform(df_nc), columns = df_nc.columns)'''
 
 # draw
-drawStdHist2(df_c, 1)
-drawStdHist(df_nc, 0)
+drawStdHist(df_c, 1, 0, 0.05)
+drawStdHist(df_nc, 0, 0, 0.3)
 
-#print(df_c)
-#print(df_nc)
+# print after scaler
+print(df_c)
+print(df_nc)
 
 plt.show()

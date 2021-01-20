@@ -11,7 +11,7 @@ args = parser.parse_args()
 
 histo = pd.DataFrame(columns=['X', 'Y', 'Score'])
 
-df = pd.read_pickle(args.file)      # x, y, score
+df = pd.read_pickle('../0-data/data_pickle/' + args.file)      # x, y, score
 
 body = ["Nos", "Nec", "Rsh", "Rel", "Rwr", "Lsh", "Lel", "Lwr", "Rey", "Ley", "Rea", "Lea"]
 
