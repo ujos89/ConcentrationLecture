@@ -21,8 +21,10 @@ df_nc = pd.read_pickle('../0-data/data_pickle/'+args.nc)
 fig, axes = plt.subplots(nrows=2, ncols=2)      
 nbin = 50
 
-df_c = df_c[['Nec_X', 'Nec_Y']]
-df_nc = df_nc[['Nec_X', 'Nec_Y']]
+part = 'Rey'
+
+df_c = df_c[[part + '_X', part + '_Y']]
+df_nc = df_nc[[part + '_X', part + '_Y']]
 
 def getStd(data, num):
     stdX = np.array([])
@@ -33,8 +35,8 @@ def getStd(data, num):
         tmp = data[idx:idx+num]
         lent = len(tmp)
         if (lent > 1):
-            stdX = np.append(stdX, (np.std(tmp['Nec_X'])))
-            stdY = np.append(stdY, (np.std(tmp['Nec_Y'])))
+            stdX = np.append(stdX, (np.std(tmp[part + '_X'])))
+            stdY = np.append(stdY, (np.std(tmp[part + '_Y'])))
             idx += num
         else:
             break
@@ -46,10 +48,10 @@ def drawStdHist(dataX, dataY, row, rangemin, rangemax):
     for i in range(2):
         if i == 0:
             data = dataX
-            label = 'Nec_X'
+            label = part + '_X'
         else:
             data = dataY
-            label = 'Nec_Y'
+            label = part + '_Y'
 
         axes[row, i].hist(data, range=(rangemin, rangemax), bins=nbin)
         axes[row, i].set_xlabel(label + '_' + str(row), fontsize=10)
