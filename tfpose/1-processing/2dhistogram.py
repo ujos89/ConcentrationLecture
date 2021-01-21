@@ -9,6 +9,10 @@ parser = argparse.ArgumentParser(description='for preprocessing tfpose data...')
 parser.add_argument('--file', type=str, required=True, help='데이터 경로')
 args = parser.parse_args()
 
+font = {'family': 'Times New Roman',
+        'size': 40,
+        }
+
 histo = pd.DataFrame(columns=['X', 'Y', 'Score'])
 
 df = pd.read_pickle('../0-data/data_pickle/' + args.file)      # x, y, score
@@ -40,10 +44,11 @@ fig.update_layout(
 nbins=30
 plt.hist2d(histo['X'], histo['Y'], bins=nbins)
 cb = plt.colorbar()
-cb.set_label('Number of entries')
+cb.set_label('Number of entries', fontdict=font)
 
-plt.xlabel('x axis')
-plt.ylabel('y axis')
+plt.xlabel('X-axis', fontdict=font)
+plt.ylabel('Y-axis', fontdict=font)
+plt.tick_params(labelsize=30.0)
 plt.show()
 
 
