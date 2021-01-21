@@ -8,12 +8,13 @@ from tensorflow.keras import layers
 import argparse
 import numpy as np
 from sklearn.model_selection import StratifiedKFold, KFold
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 
 parser = argparse.ArgumentParser(description='for running DNN...')
 parser.add_argument('--file', type=str, required=True, help='name of file')
 parser.add_argument('--plot', type=str, default='0', help='choose plot graph')
 parser.add_argument('--size', type=int, default=0, help='choose size of dataset')
-parser.add_argument('--epoch', type=int, default=1000, help='number of iterations')
+parser.add_argument('--epoch', type=int, default=10000, help='number of iterations')
 args = parser.parse_args()
 
 #build dataset
@@ -30,12 +31,12 @@ def build_dataset(cnt):
 def build_model():
     model = keras.Sequential([
         layers.Dense(len(train_dataset.keys()), activation='relu', input_shape=[len(train_dataset.keys())]),
-        layers.Dense(16, activation = 'sigmoid'),
+        layers.Dense(16, activation = 'relu'),
         layers.Dense(1, activation='sigmoid')
     ])
     #keras.optimizers.RMSprop(0.1)
     keras.optimizers.Adam(lr=0.001)
-    model.compile(loss='binary_crossentropy', optimizer = 'adam', metrics = ['mse','accuracy', 'binary_crossentropy'])
+    model.compile(loss='binary_crossentropy', optimizer = 'adam', metrics = ['binary_crossentropy'])
     #metrics = ['mae', 'mse','accuracy'])
     return model
 
@@ -110,7 +111,7 @@ def plot_history3(test_predictions, test_labels, hist):
 ##main
 #split test, train set(X: train_dataset)
 dataset = build_dataset(args.size)
-X = dataset.sample(frac=0.8, random_state = 0)
+X = dataset.sample(frac=0.8, random_state = 42)
 test_dataset = dataset.drop(X.index)
 
 #split label(y: train_label)
@@ -131,16 +132,23 @@ for train_idx, val_idx in skf.split(X, y):
     #run dnn
     model = build_model()
     #print(model.summary())
-    history = model.fit(train_dataset, train_labels, epochs=args.epoch, validation_data=(val_dataset, val_labels), verbose=0, callbacks=[PrintDot()])
-    #save model
-    #model.save('model_pose.model')
 
+    #non use early stopping
+    #history = model.fit(train_dataset, train_labels, epochs=args.epoch, validation_data=(val_dataset, val_labels), verbose=0, callbacks=[PrintDot()])
+    
+    #early stopping
+    es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=100)
+    history = model.fit(train_dataset, train_labels, epochs=args.epoch, validation_data=(val_dataset, val_labels), verbose=0, callbacks=[PrintDot(), es])
+    
     #calculate prediction
     test_predictions = model.predict(test_dataset).flatten()
     pl_set, tmp_accuracy = cal_accuracy(test_labels, test_predictions)
     accuracy.append(tmp_accuracy)
     print(pl_set[-100:])
     print("accuracy: ",tmp_accuracy,"%")
+
+    #save model
+    model.save('models/4R16R1S_'+str(i)+'.h5')
 
     #extract pl_set to pickle
     pl_df = pd.DataFrame(pl_set, columns=['prediction','label'])
