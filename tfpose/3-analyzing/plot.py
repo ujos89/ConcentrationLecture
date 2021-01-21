@@ -10,7 +10,7 @@ dataPath = '../0-data/data_prediction/4R16R1S_es_100/90_for_kf.pkl'
 dfRaw = pd.read_pickle(dataPath)
 
 
-# print(dfRaw)
+print(dfRaw)
 
 
 tFrame =  50.
@@ -25,11 +25,11 @@ error = 12 / np.sqrt(n4error)
 
 
 
-print(error)
+# print(error)
 
 dfMeasure = dfRaw['prediction']
 
-print(dfMeasure)
+# print(dfMeasure)
 
 
 dfMeasureCut = pd.DataFrame() 
@@ -40,7 +40,7 @@ for i in range(0, len(dfRaw), nCut) :
     dfMeasureOne =  pd.DataFrame([dfMeasure.loc[i]])
     dfMeasureCut = pd.concat([dfMeasureCut, dfMeasureOne])
 
-print(dfMeasureCut)
+# print(dfMeasureCut)
 
 
 
@@ -52,12 +52,12 @@ tNp = np.arange(0, tMax, step=tWinCut)
 
 u = np.array([[dfMeasureCut.iloc[1]], [dfMeasureCut.iloc[1]]])
 
-print(dfMeasureCut.iloc[1])
+# print(dfMeasureCut.iloc[1])
 
-print(u)
+# print(u)
 
-print(tNp)
+# print(tNp)
 
-plt.scatter(tNp, dfMeasureCut)
+plt.scatter(tNp, dfRaw['prediction'], c=dfRaw['label'])
 
 plt.show()
