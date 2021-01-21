@@ -9,6 +9,7 @@ import argparse
 import numpy as np
 from sklearn.model_selection import StratifiedKFold, KFold
 from keras.callbacks import ModelCheckpoint, EarlyStopping
+from keras.layers import Dropout
 
 parser = argparse.ArgumentParser(description='for running DNN...')
 parser.add_argument('--file', type=str, required=True, help='name of file')
@@ -31,7 +32,7 @@ def build_dataset(cnt):
 def build_model():
     model = keras.Sequential([
         layers.Dense(len(train_dataset.keys()), activation='relu', input_shape=[len(train_dataset.keys())]),
-        layers.Dense(16, activation = 'relu'),
+        #layers.Dense(16, activation = 'sigmoid'),
         layers.Dense(1, activation='sigmoid')
     ])
     #keras.optimizers.RMSprop(0.1)
@@ -148,7 +149,7 @@ for train_idx, val_idx in skf.split(X, y):
     print("accuracy: ",tmp_accuracy,"%")
 
     #save model
-    model.save('models/4R16R1S_'+str(i)+'.h5')
+    model.save('models/4R1S_'+str(i)+'.h5')
 
     #extract pl_set to pickle
     pl_df = pd.DataFrame(pl_set, columns=['prediction','label'])
