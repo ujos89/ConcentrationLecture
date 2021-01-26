@@ -18,12 +18,12 @@ df_c = pd.read_pickle('../0-data/data_pickle/'+args.c)
 df_nc = pd.read_pickle('../0-data/data_pickle/'+args.nc)      
 
 # neckx, necky
-fig, axes = plt.subplots(nrows=1, ncols=2)      
+plt.rcParams['font.family'] = 'Times New Roman'
+plt.rcParams.update({'font.size': 55})
+fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 10))      
+fig.tight_layout(pad=1.3)
+fig.suptitle('Distribution of Standard Deviation of Neck')
 nbin = 50
-font = {'family': 'Times New Roman',
-        'size': 40,
-        }
-fig.suptitle('Distribution of Neck', fontproperties=font)
 
 part = 'Nec'
 
@@ -62,9 +62,10 @@ def drawStdHist(dataX, dataY, row, rangemin, rangemax):
         else: c='blue'          # not
 
         axes[i].hist(data, range=(rangemin, rangemax), bins=nbin, color=c, alpha=0.5, label='label: ' + str(row))
-        axes[i].legend(prop=font)
-        axes[i].set_xlabel(label, fontdict=font)
-        axes[i].set_ylabel('Num', fontdict=font)
+        axes[i].legend()
+        axes[i].set_xlabel(label)
+        axes[i].set_ylabel('Num')
+        axes[i].grid(True)
 
 c_stdX, c_stdY = getStd(df_c, args.num)
 nc_stdX, nc_stdY = getStd(df_nc, args.num)
@@ -93,7 +94,8 @@ print(df_nc.describe())
 drawStdHist(df_c['stdX'], df_c['stdY'], 1, 0, 0.02)        # concentrate
 drawStdHist(df_nc['stdX'], df_nc['stdY'], 0, 0, 0.02)      # not concentrate
 
-plt.show()
+# plt.show()
+plt.savefig('kjk_neck50.png')
 
 # print
 df_cLen = []

@@ -7,22 +7,28 @@ from sklearn.preprocessing import StandardScaler
 
 # parser
 parser = argparse.ArgumentParser(description='for preprocessing tfpose data...')
-parser.add_argument('--c', type=str, default='', help='raw (pickle)data path and name with ".pkl"')
-parser.add_argument('--nc', type=str, default='', help='raw (pickle)data path and name with ".pkl"')
+parser.add_argument('--c', type=str, help='raw (pickle)data path and name with ".pkl"')
+parser.add_argument('--nc', type=str, help='raw (pickle)data path and name with ".pkl"')
 parser.add_argument('--scaler', type=int, default=0, help='0-nonscaler 1-scaler')
+parser.add_argument('--merge', type=str, help='merged data')
 args = parser.parse_args()
 
 # read pickle data
-df_c = pd.read_pickle('../0-data/data_prepared/'+args.c)        # ( , 5)
-df_nc = pd.read_pickle('../0-data/data_prepared/'+args.nc)      # ( , 5)
+if args.c and args.nc:
+    df_c = pd.read_pickle('../0-data/data_prepared/'+args.c)        # ( , 5)
+    df_nc = pd.read_pickle('../0-data/data_prepared/'+args.nc)      # ( , 5)
+if args.merge:
+    df = pd.read_pickle('../0-data/data_prepared/merged/'+args.merge)
+    df_c = df[df['label']==1]
+    df_nc = df[df['label']==0]
 
 # topX, topY, midX, midY
-fig1, axes = plt.subplots(nrows=2, ncols=2)      
+plt.rcParams['font.family'] = 'Times New Roman'
+plt.rcParams.update({'font.size': 60})
+fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(25, 20))      
+fig.tight_layout()
 nbin = 50
-font = {'family': 'Times New Roman',
-        'size': 40,
-        }
-fig1.suptitle('Distribution of Standard Deviation', fontproperties=font)
+fig.suptitle('Distribution of Standard Deviation', y=0.99)
 
 # define concatenation function
 def concatData(data):
@@ -52,11 +58,10 @@ def drawStdHist(data, row, rangemin,rangemax):
             axes[i][j].hist(data.iloc[:, idx], range=(rangemin, rangemax), bins=nbin, alpha=0.5, color=c, label='label: ' + str(row))
         #x2, p2, mu2, std1 = funcFitGaus(data.iloc[:, i])
         #axes[row, i].plot(x2, p2, 'r', linewidth=2)
-
-            axes[i][j].legend(prop=font)
-            axes[i][j].set_xlabel(data.columns[idx], fontdict=font)
-            axes[i][j].set_ylabel('Num', fontdict=font)
-            axes[i][j].grid()
+            axes[i][j].legend()
+            axes[i][j].set_xlabel(data.columns[idx])
+            axes[i][j].set_ylabel('Num')
+            axes[i][j].grid(True)
             idx += 1
     
     '''axes[row, 4].hist(dataT, range=(0, 1), bins=nbin)
@@ -76,10 +81,6 @@ def drawStdHist(data, row, rangemin,rangemax):
 # drop NaN
 df_c = df_c.dropna(axis=0)
 df_nc = df_nc.dropna(axis=0)
-
-# print before scaler
-# print(df_c.describe())
-# print(df_nc.describe())
 
 # standardScaler
 if args.scaler:
@@ -103,10 +104,11 @@ print(df_c.describe())
 print(df_nc.describe())
 
 # draw
-drawStdHist(df_c, 1, 0, 0.3)
-drawStdHist(df_nc, 0, 0, 0.3)
+drawStdHist(df_c, 1, 0, 0.02)
+drawStdHist(df_nc, 0, 0, 0.02)
 
-plt.show()
+# plt.show()
+plt.savefig('kjk_stopmove_50.png')
 
 # print
 df_cLen = []
