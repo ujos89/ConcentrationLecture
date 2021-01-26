@@ -6,6 +6,9 @@ from scipy.spatial.transform import Rotation as Rot
 from scipy import special, optimize
 from pylab import *
 from scipy.optimize import curve_fit
+from scipy.interpolate import make_interp_spline, BSpline
+
+
 
 plt.rcParams['font.family'] = 'Times New Roman'
 plt.rcParams.update({'font.size': 40})
@@ -77,7 +80,7 @@ def funcKFsimple(datapath):
     R = 4
     # Initialization for estimation.
     x_0 = 0.5  
-    P_0 = 100
+    P_0 = 0.9
 
     conLv_meas_save = np.zeros(len(dfRaw))
     conLv_esti_save = np.zeros(len(dfRaw))
@@ -102,26 +105,33 @@ def funcKFsimple(datapath):
 
 m1, e1, tNpTot1 = funcKFsimple(dataPath1)
 m0, e0, tNpTot0 = funcKFsimple(dataPath0)
+tNpTot1 = tNpTot1 * 2.5 / 60
+tNpTot0 = tNpTot0 * 2.5 / 60
 
-plt.figure(1)
-plt.plot(tNpTot0, m0, 'ko', label='Measurements 0 ')
-plt.plot(tNpTot0, e0, 'go-', label='Kalman Filter 0 ')
+plt.figure(1, dpi=150)
 
 plt.plot(tNpTot1, m1, 'bo', label='Measurements 1 ')
 plt.plot(tNpTot1, e1, 'ro-', label='Kalman Filter 1 ')
 
+plt.plot(tNpTot0, m0, 'ko', label='Measurements 0 ')
+plt.plot(tNpTot0, e0, 'go-', label='Kalman Filter 0 ')
 
-plt.legend(loc='upper right')
+
+
+plt.legend(loc=2, prop={'size': 30})
 plt.title('Simple Kalman Filter Result')
-plt.xlabel('Time [per 2.5 sec]')
+plt.xlabel('Time (min)')
 plt.ylabel('Concentration Level')
 plt.savefig('./png/simple_kalman_filter.png')
 plt.grid()
 
 nBins = 50
-# def _2gaussian(x, amp1,cen1,sigma1, amp2,cen2,sigma2):
-#     return amp1*(1/(sigma1*(np.sqrt(2*np.pi))))*(np.exp((-1.0/2.0)*(((x_array-cen1)/sigma1)**2))) + \
-#             amp2*(1/(sigma2*(np.sqrt(2*np.pi))))*(np.exp((-1.0/2.0)*(((x_array-cen2)/sigma2)**2)))
+def _2gaussian(x, amp1,cen1,sigma1, amp2,cen2,sigma2):
+    return amp1*(1/(sigma1*(np.sqrt(2*np.pi))))*(np.exp((-1.0/2.0)*(((x_array-cen1)/sigma1)**2))) + \
+            amp2*(1/(sigma2*(np.sqrt(2*np.pi))))*(np.exp((-1.0/2.0)*(((x_array-cen2)/sigma2)**2)))
+
+
+
 
 
 def gauss(x,mu,sigma,A):
@@ -130,9 +140,21 @@ def gauss(x,mu,sigma,A):
 def bimodal(x,mu1,sigma1,A1,mu2,sigma2,A2):
     return gauss(x,mu1,sigma1,A1)+gauss(x,mu2,sigma2,A2)
 
+def min_max_normalize(lst):
+    normalized = []
+    
+    for value in lst:
+        normalized_num = (value - min(lst)) / (max(lst) - min(lst))
+        normalized.append(normalized_num)
+    
+    return normalized
 
-
-
+def z_score_normalize(lst):
+    normalized = []
+    for value in lst:
+        normalized_num = (value - np.mean(lst)) / np.std(lst)
+        normalized.append(normalized_num)
+    return normalized
 
 # popt_2gauss, pcov_2gauss = optimize.curve_fit(_2gaussian, x_array, y_array_2gauss, p0=[amp1, cen1, sigma1, amp2, cen2, sigma2])
 # perr_2gauss = np.sqrt(np.diag(pcov_2gauss))
@@ -143,7 +165,7 @@ def bimodal(x,mu1,sigma1,A1,mu2,sigma2,A2):
 
 
 
-plt.figure(2)
+plt.figure(2, dpi=150)
 # plt.hist(conLv_esti_save, bins =nBins , label='Estimation')
 plt.legend(loc='lower right')
 plt.title('Estimation Histogram')
@@ -151,6 +173,10 @@ plt.xlabel('Estimation Concentration Level')
 plt.ylabel('Number of Values')
 # plt.savefig('./png/histogram.png')
 plt.grid()
+
+# e1 = z_score_normalize(e1)
+# e0 = z_score_normalize(e0)
+
 
 
 stdIni1 = np.std(e1)
@@ -165,8 +191,9 @@ y0,x0,_ = hist(e0, bins =nBins , label='Estimation', color='green', alpha=0.5, r
 x1=(x1[1:]+x1[:-1])/2 # for len(x)==len(y)
 x0=(x0[1:]+x0[:-1])/2 # for len(x)==len(y)
 
-expected1=(meanIni1 - stdIni1, stdIni1 , 100, meanIni1 + stdIni1 , stdIni1, 20)
-expected0=(meanIni0 - stdIni0, stdIni0 , 100, meanIni0 + stdIni0  , stdIni0, 20)
+expected1=(meanIni1 - stdIni1, stdIni1 , 700, meanIni1 + stdIni1 , stdIni1, 20)
+expected0=(meanIni0 - stdIni0, stdIni0 , 500, meanIni0 + stdIni0  , stdIni0, 500)
+# expected0=(meanIni0, stdIni0 , 100, meanIni0 + stdIni0  , stdIni0, 20)
 
 params1,cov1 = curve_fit(bimodal,x1,y1,expected1)
 params0,cov0 = curve_fit(bimodal,x0,y0,expected0)
@@ -174,13 +201,30 @@ params0,cov0 = curve_fit(bimodal,x0,y0,expected0)
 sigma1=sqrt(diag(cov1))
 sigma0=sqrt(diag(cov0))
 
-plot(x1,bimodal(x1,*params1),color='red',lw=3,label='model')
-plot(x0,bimodal(x0,*params0),color='green',lw=3,label='model')
-legend()
-print(params1,'\n',sigma1)   
-print(params0,'\n',sigma0)   
 
-print(pd.DataFrame(data={'params1':params1,'sigma1':sigma1},index=bimodal.__code__.co_varnames[1:]))
-print(pd.DataFrame(data={'params1':params0,'sigma1':sigma0},index=bimodal.__code__.co_varnames[1:]))
+
+print(x1)
+
+#define x as 200 equally spaced values between the min and max of original x 
+xnew1 = np.linspace(x1.min(), x1.max(), 100) 
+xnew0 = np.linspace(x0.min(), x0.max(), 100) 
+
+#define spline
+spl1 = make_interp_spline(x1, bimodal(x1,*params1), k=2)
+spl0 = make_interp_spline(x0, bimodal(x0,*params0), k=2)
+y_smooth1 = spl1(xnew1)
+y_smooth0 = spl0(xnew0)
+
+
+
+plot(xnew1,y_smooth1,color='red',lw=3,label='model')
+plot(xnew0,y_smooth0,color='green',lw=3,label='model')
+legend()
+
+# print(params1,'\n',sigma1)   
+# # print(params0,'\n',sigma0)   
+
+# print(pd.DataFrame(data={'params1':params1,'sigma1':sigma1},index=bimodal.__code__.co_varnames[1:]))
+print(pd.DataFrame(data={'params0':params0,'sigma0':sigma0},index=bimodal.__code__.co_varnames[1:]))
 
 plt.show()
