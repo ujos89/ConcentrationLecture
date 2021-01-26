@@ -10,25 +10,30 @@ parser = argparse.ArgumentParser(description='for preprocessing tfpose data...')
 parser.add_argument('--c', type=str, help='raw (pickle)data path and name with ".pkl"')
 parser.add_argument('--nc', type=str, help='raw (pickle)data path and name with ".pkl"')
 parser.add_argument('--scaler', type=int, default=0, help='0-nonscaler 1-scaler')
-parser.add_argument('--merge', type=str, help='merged data')
+parser.add_argument('--file', type=str, help='merged data')
 args = parser.parse_args()
 
 # read pickle data
 if args.c and args.nc:
     df_c = pd.read_pickle('../0-data/data_prepared/'+args.c)        # ( , 5)
     df_nc = pd.read_pickle('../0-data/data_prepared/'+args.nc)      # ( , 5)
-if args.merge:
-    df = pd.read_pickle('../0-data/data_prepared/merged/'+args.merge)
+if args.file:
+    df = pd.read_pickle('../0-data/data_prepared/merged/'+args.file)
     df_c = df[df['label']==1]
     df_nc = df[df['label']==0]
 
 # topX, topY, midX, midY
 plt.rcParams['font.family'] = 'Times New Roman'
-plt.rcParams.update({'font.size': 60})
-fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(25, 20))      
-fig.tight_layout()
+plt.rcParams.update({'font.size': 70})
+fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(30, 25))      
+#axes[0][0].spines['left'].set_position(('outward', +10))
+#axes[0][0].spines['bottom'].set_position(('outward', +10))
+fig.tight_layout(pad=2)
 nbin = 50
-fig.suptitle('Distribution of Standard Deviation', y=0.99)
+fig.suptitle('Distribution of Top / Mid\'s Standard Deviation', y=0.95)
+
+# label list
+la = ['Standard deviation of\ntop\'s x-coordinate', 'Standard deviation of\ntop\'s y-coordinate', 'Standard deviation of\nmid\'s x-coordinate', 'Standard deviation of\nmid\'s y-coordinate']
 
 # define concatenation function
 def concatData(data):
@@ -37,14 +42,6 @@ def concatData(data):
     dataTotal = pd.concat([dataT, dataM])
     
     return dataT, dataM, dataTotal
-
-#fitting Gauss
-def funcFitGaus(dfInput):       # dfInput: dataframe 
-    mu, std = norm.fit(dfInput)
-    xmin, xmax = plt.xlim()
-    x = np.linspace(xmin, xmax, 100)
-    p = norm.pdf(x, mu, std)
-    return x, p, mu, std
 
 # define drawing std 1-D histogram function
 def drawStdHist(data, row, rangemin,rangemax):
@@ -59,23 +56,11 @@ def drawStdHist(data, row, rangemin,rangemax):
         #x2, p2, mu2, std1 = funcFitGaus(data.iloc[:, i])
         #axes[row, i].plot(x2, p2, 'r', linewidth=2)
             axes[i][j].legend()
-            axes[i][j].set_xlabel(data.columns[idx])
-            axes[i][j].set_ylabel('Num')
+            axes[i][j].set_xlabel(la[idx])
+            axes[i][j].set_ylabel('Count')
             axes[i][j].grid(True)
             idx += 1
     
-    '''axes[row, 4].hist(dataT, range=(0, 1), bins=nbin)
-    axes[row, 4].set_xlabel('Top_' + str(row), fontsize=10)
-    axes[row, 4].set_ylabel('Num', fontsize=10)
-
-    axes[row, 5].hist(dataM, range=(0, 1), bins=nbin)
-    axes[row, 5].set_xlabel('Mid_' + str(row), fontsize=10)
-    axes[row, 5].set_ylabel('Num', fontsize=10)
-    
-    axes[row, 6].hist(dataTotal, range=(0, 1), bins=nbin)
-    axes[row, 6].set_xlabel('Total_' + str(row), fontsize=10)
-    axes[row, 6].set_ylabel('Num', fontsize=10)'''
-
 
 
 # drop NaN
@@ -104,8 +89,8 @@ print(df_c.describe())
 print(df_nc.describe())
 
 # draw
-drawStdHist(df_c, 1, 0, 0.02)
-drawStdHist(df_nc, 0, 0, 0.02)
+drawStdHist(df_c, 1, -0.001, 0.02)
+drawStdHist(df_nc, 0, -0.001, 0.02)
 
 # plt.show()
 plt.savefig('kjk_stopmove_50.png')
