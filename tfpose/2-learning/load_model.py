@@ -40,7 +40,7 @@ pl_set, accuracy = cal_accuracy(test_labels, test_predictions)
 #prediction to pickle
 pl_df = pd.DataFrame(pl_set, columns=['prediction','label'])
 #print(pl_df)
-pl_df.to_pickle('../0-data/data_prediction/kpg2kpg1_'+str(accuracy//0.01/100)+'.pkl')
+pl_df.to_pickle('../0-data/data_prediction/kjk2kjk1_'+str(accuracy//0.01/100)+'.pkl')
 
 print((pl_set[:-50]))
 print("accuracy: ",accuracy,"%")
