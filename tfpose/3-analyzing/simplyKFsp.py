@@ -111,30 +111,23 @@ tNpTot0 = tNpTot0 * 2.5 / 60
 plt.figure(1)
 
 plt.plot(tNpTot1, m1, 'bo', label='Measurements 1 ')
-plt.plot(tNpTot1, e1, 'ro-', label='Kalman Filter 1 ')
-
+plt.plot(tNpTot1, e1, 'ro', label='Estimations 1 ')
 plt.plot(tNpTot0, m0, 'ko', label='Measurements 0 ')
-plt.plot(tNpTot0, e0, 'go-', label='Kalman Filter 0 ')
+plt.plot(tNpTot0, e0, 'go', label='Estimations 0 ')
 
 
-
-plt.legend(loc=2, prop={'size': 25})
+plt.legend(framealpha=1, loc='upper right', prop={'size': 25}, ncol= 2)
 plt.title('Results')
 plt.xlabel('Time (min)')
 plt.ylabel('Concentration Levels')
-plt.set_xlim([0,60])
-plt.set_ylim([0,1.1])
+# plt.xlim(0,50)
+# plt.ylim(0,1.0)
 plt.savefig('./png/simple_kalman_filter.png')
 plt.grid()
 
-nBins = 100
 def _2gaussian(x, amp1,cen1,sigma1, amp2,cen2,sigma2):
     return amp1*(1/(sigma1*(np.sqrt(2*np.pi))))*(np.exp((-1.0/2.0)*(((x_array-cen1)/sigma1)**2))) + \
             amp2*(1/(sigma2*(np.sqrt(2*np.pi))))*(np.exp((-1.0/2.0)*(((x_array-cen2)/sigma2)**2)))
-
-
-
-
 
 def gauss(x,mu,sigma,A):
     return A*exp(-(x-mu)**2/2/sigma**2)
@@ -158,19 +151,12 @@ def z_score_normalize(lst):
         normalized.append(normalized_num)
     return normalized
 
-# popt_2gauss, pcov_2gauss = optimize.curve_fit(_2gaussian, x_array, y_array_2gauss, p0=[amp1, cen1, sigma1, amp2, cen2, sigma2])
-# perr_2gauss = np.sqrt(np.diag(pcov_2gauss))
-# pars_1 = popt_2gauss[0:3]
-# pars_2 = popt_2gauss[3:6]
-# gauss_peak_1 = _1gaussian(x_array, *pars_1)
-# gauss_peak_2 = _1gaussian(x_array, *pars_2)
-
 
 
 plt.figure(2)
 # plt.hist(conLv_esti_save, bins =nBins , label='Estimation')
-plt.legend(loc='lower right')
-plt.title('Estimation Histograms')
+# plt.legend(loc='lower right')
+plt.title('Non-Concentration')
 plt.xlabel('Estimation Concentration Levels')
 plt.ylabel('Number of Values')
 # plt.savefig('./png/histogram.png')
@@ -179,71 +165,72 @@ plt.grid()
 # e1 = z_score_normalize(e1)
 # e0 = z_score_normalize(e0)
 
-
-
-stdIni1 = np.std(e1)
-meanIni1 = np.mean(e1)
+nBins0 = 30
 
 stdIni0 = np.std(e0)
 meanIni0 = np.mean(e0)
 
-y1,x1,_ = hist(e1, bins =nBins , label='Estimation', color='red', alpha=0.5, range=(0.0,1.0))
-y0,x0,_ = hist(e0, bins =nBins , label='Estimation', color='green', alpha=0.5, range=(0.0,1.0))
+y0,x0,_ = hist(e0, bins =nBins0 , label='Estimation', color='green', alpha=0.5, range=(0.0,0.25))
 
-x1=(x1[1:]+x1[:-1])/2 # for len(x)==len(y)
 x0=(x0[1:]+x0[:-1])/2 # for len(x)==len(y)
 
-expected1=(meanIni1 - stdIni1, stdIni1 , 150, meanIni1 + stdIni1 , stdIni1, 250)
-expected0=(meanIni0 - stdIni0, stdIni0 , 200, meanIni0 + stdIni0  , stdIni0, 250)
-# expected0=(meanIni0, stdIni0 , 100, meanIni0 + stdIni0  , stdIni0, 20)
+expected0=(meanIni0 - stdIni0, stdIni0/2 , 50, meanIni0 + stdIni0  , stdIni0/2, 100)
 
-params1,cov1 = curve_fit(bimodal,x1,y1,expected1)
 params0,cov0 = curve_fit(bimodal,x0,y0,expected0)
 
-sigma1=sqrt(diag(cov1))
 sigma0=sqrt(diag(cov0))
 
-
-
-print(x1)
-
 #define x as 200 equally spaced values between the min and max of original x 
-xnew1 = np.linspace(x1.min(), x1.max(), 200) 
 xnew0 = np.linspace(x0.min(), x0.max(), 200) 
 
 #define spline
-spl1 = make_interp_spline(x1, bimodal(x1,*params1), k=3)
 spl0 = make_interp_spline(x0, bimodal(x0,*params0), k=3)
-y_smooth1 = spl1(xnew1)
 y_smooth0 = spl0(xnew0)
 
-
-
-plot(xnew1,y_smooth1,color='red',lw=3,label='model')
 plot(xnew0,y_smooth0,color='green',lw=3,label='model')
 
-legend()
-
-print(params1,'\n',sigma1)   
-# print(params0,'\n',sigma0)   
-
-print(pd.DataFrame(data={'params1':params1,'sigma1':sigma1},index=bimodal.__code__.co_varnames[1:]))
 print(pd.DataFrame(data={'params0':params0,'sigma0':sigma0},index=bimodal.__code__.co_varnames[1:]))
-
-
-
 
 #############
 
 
-plt.figure(2)
+plt.figure(3)
 # plt.hist(conLv_esti_save, bins =nBins , label='Estimation')
-plt.legend(loc='lower right')
-plt.title('Estimation Histograms')
+# plt.legend(loc='lower right')
+plt.title('Full-Concentration')
 plt.xlabel('Estimation Concentration Levels')
 plt.ylabel('Number of Values')
 # plt.savefig('./png/histogram.png')
 plt.grid()
+
+
+nBins1 = 30
+
+stdIni1 = np.std(e1)
+meanIni1 = np.mean(e1)
+
+y1,x1,_ = hist(e1, bins =nBins1 , label='Estimation', color='red', alpha=0.5, range=(0.7,0.85))
+
+x1=(x1[1:]+x1[:-1])/2 # for len(x)==len(y)
+
+expected1=(0.75, stdIni1/2 , 120, meanIni1 + stdIni1  , stdIni1/2, 100)
+
+params1,cov1 = curve_fit(bimodal,x1,y1,expected1)
+
+sigma1=sqrt(diag(cov1))
+
+#define x as 200 equally spaced values between the min and max of original x 
+xnew1 = np.linspace(x1.min(), x1.max(), 200) 
+
+#define spline
+spl1 = make_interp_spline(x1, bimodal(x1,*params1), k=3)
+y_smooth1 = spl1(xnew1)
+
+plot(xnew1,y_smooth1,color='red',lw=3,label='model')
+
+print(pd.DataFrame(data={'params1':params1,'sigma1':sigma1},index=bimodal.__code__.co_varnames[1:]))
+
+
 
 
 plt.show()
