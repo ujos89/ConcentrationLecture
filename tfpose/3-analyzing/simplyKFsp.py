@@ -10,11 +10,27 @@ from scipy.interpolate import make_interp_spline, BSpline
 
 
 
-plt.rcParams['font.family'] = 'Times New Roman'
-plt.rcParams.update({'font.size': 40})
+# plt.rcParams['font.family'] = 'Times New Roman'
 
-dataPath0 = '/Users/wdlee/Hci/test111.pkl'
-dataPath1 = '/Users/wdlee/Hci/test000.pkl'
+plt.rcParams.update({'font.size': 11})
+
+# use LaTeX fonts in the plot
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+# plt.rc('xtick', labelsize='x-small')
+# plt.rc('ytick', labelsize='x-small')
+# params = {'tex.usetex': True}
+# plt.rcParams.update(params)
+
+# plt.rcParams.update({
+#     "text.usetex": True,
+#     "font.family": "serif",
+#     "font.serif": ["Palatino"]
+# })
+
+# plt.rc(usetex = True)
+dataPath0 = '~/Work/python/ConcentrationLectureData/data/test111.pkl'
+dataPath1 = '~/Work/python/ConcentrationLectureData/data/test000.pkl'
 
 
 
@@ -108,22 +124,23 @@ m0, e0, tNpTot0 = funcKFsimple(dataPath0)
 tNpTot1 = tNpTot1 * 2.5 / 60
 tNpTot0 = tNpTot0 * 2.5 / 60
 
-plt.figure(1)
+plt.figure(1, figsize=(5, 4), dpi=300)
 
-plt.plot(tNpTot1, m1, 'bo', label='Measurements 1 ')
-plt.plot(tNpTot1, e1, 'ro', label='Estimations 1 ')
-plt.plot(tNpTot0, m0, 'ko', label='Measurements 0 ')
-plt.plot(tNpTot0, e0, 'go', label='Estimations 0 ')
+plt.plot(tNpTot1, m1, 'bo', label='Measurements 1 ', markersize=2 )
+plt.plot(tNpTot1, e1, 'ro', label='Estimations 1 ' , markersize=2 )
+plt.plot(tNpTot0, m0, 'ko', label='Measurements 0 ', markersize=2 )
+plt.plot(tNpTot0, e0, 'go', label='Estimations 0 ' , markersize=2 )
 
 
-plt.legend(framealpha=1, loc='upper right', prop={'size': 25}, ncol= 2)
+plt.legend(framealpha=1, loc='upper right', ncol= 2)
 plt.title('Results')
 plt.xlabel('Time (min)')
 plt.ylabel('Concentration Levels')
 # plt.xlim(0,50)
 # plt.ylim(0,1.0)
-plt.savefig('./png/simple_kalman_filter.png')
 plt.grid()
+plt.savefig('./png/result.png')
+
 
 def _2gaussian(x, amp1,cen1,sigma1, amp2,cen2,sigma2):
     return amp1*(1/(sigma1*(np.sqrt(2*np.pi))))*(np.exp((-1.0/2.0)*(((x_array-cen1)/sigma1)**2))) + \
@@ -153,14 +170,10 @@ def z_score_normalize(lst):
 
 
 
-plt.figure(2)
+plt.figure(2,figsize=(5, 4), dpi=300)
 # plt.hist(conLv_esti_save, bins =nBins , label='Estimation')
 # plt.legend(loc='lower right')
-plt.title('Non-Concentration')
-plt.xlabel('Estimation Concentration Levels')
-plt.ylabel('Number of Values')
-# plt.savefig('./png/histogram.png')
-plt.grid()
+
 
 # e1 = z_score_normalize(e1)
 # e0 = z_score_normalize(e0)
@@ -191,17 +204,18 @@ plot(xnew0,y_smooth0,color='green',lw=3,label='model')
 
 print(pd.DataFrame(data={'params0':params0,'sigma0':sigma0},index=bimodal.__code__.co_varnames[1:]))
 
+plt.title('Low Concentration')
+plt.xlabel('$\Psi_{low}$')
+plt.ylabel('Number of Values') 
+plt.grid()
+plt.savefig('./png/resultLow.png')
+
 #############
 
 
-plt.figure(3)
+plt.figure(3,figsize=(5, 4), dpi=300)
 # plt.hist(conLv_esti_save, bins =nBins , label='Estimation')
 # plt.legend(loc='lower right')
-plt.title('Full-Concentration')
-plt.xlabel('Estimation Concentration Levels')
-plt.ylabel('Number of Values')
-# plt.savefig('./png/histogram.png')
-plt.grid()
 
 
 nBins1 = 30
@@ -229,6 +243,12 @@ y_smooth1 = spl1(xnew1)
 plot(xnew1,y_smooth1,color='red',lw=3,label='model')
 
 print(pd.DataFrame(data={'params1':params1,'sigma1':sigma1},index=bimodal.__code__.co_varnames[1:]))
+
+plt.title('High Concentration')
+plt.xlabel(r'$\Psi_{high}$')
+plt.ylabel('Number of Values')
+plt.grid()
+plt.savefig('./png/resultHigh.png')
 
 
 
