@@ -18,10 +18,14 @@ df_c = pd.read_pickle('../0-data/data_pickle/'+args.c)
 df_nc = pd.read_pickle('../0-data/data_pickle/'+args.nc)      
 
 # neckx, necky
-fig, axes = plt.subplots(nrows=2, ncols=2)      
+plt.rcParams['font.family'] = 'Times New Roman'
+plt.rcParams.update({'font.size': 60})
+fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(25, 15)) 
+fig.tight_layout(pad=2)
+fig.suptitle('Distribution of $\sigma_{Neck}$', y=0.93)
 nbin = 50
 
-part = 'Rey'
+part = 'Nec'
 
 df_c = df_c[[part + '_X', part + '_Y']]
 df_nc = df_nc[[part + '_X', part + '_Y']]
@@ -48,14 +52,20 @@ def drawStdHist(dataX, dataY, row, rangemin, rangemax):
     for i in range(2):
         if i == 0:
             data = dataX
-            label = part + '_X'
+            label = '$\sigma_{Neck}^X$'
+            
         else:
             data = dataY
-            label = part + '_Y'
+            label = '$\sigma_{Neck}^Y$'
+        
+        if row==1: c='red'      # concentration
+        else: c='blue'          # not
 
-        axes[row, i].hist(data, range=(rangemin, rangemax), bins=nbin)
-        axes[row, i].set_xlabel(label + '_' + str(row), fontsize=10)
-        axes[row, i].set_ylabel('Num', fontsize=10)
+        axes[i].hist(data, range=(rangemin, rangemax), bins=nbin, color=c, alpha=0.5, label='label: ' + str(row))
+        axes[i].legend()
+        axes[i].set_xlabel(label)
+        axes[i].set_ylabel('Count')
+        axes[i].grid(True)
 
 c_stdX, c_stdY = getStd(df_c, args.num)
 nc_stdX, nc_stdY = getStd(df_nc, args.num)
@@ -69,8 +79,9 @@ if args.scaler:
     df = pd.concat([df_c, df_nc])
     
     for i in df.columns[:-1]:
-        df[i] = (df[i] - df[i].mean()) / df[i].std()
-    
+        df[i] = (df[i] - df[i].mean()) / df[i].std()    # normalize
+        # df[i] = df[i] / (df[i].max() - df[i].mean())     # minmax
+
     df_c = df[df['label'] == 1]
     df_nc = df[df['label'] == 0]
 
@@ -80,9 +91,23 @@ print(df_nc)
 print(df_c.describe())
 print(df_nc.describe())
 
+drawStdHist(df_c['stdX'], df_c['stdY'], 1, -0.001, 0.02)        # concentrate
+drawStdHist(df_nc['stdX'], df_nc['stdY'], 0, -0.001, 0.02)      # not concentrate
 
-drawStdHist(df_c['stdX'], df_c['stdY'], 1, -1, 1)        # concentrate
-drawStdHist(df_nc['stdX'], df_nc['stdY'], 0, -1, 1)      # not concentrate
+# plt.show()
+plt.savefig('kjk_neck50.png')
 
+# print
+df_cLen = []
+df_ncLen = []
+for i in df_c.columns[:-1]:
+    df_cLen.append( len(df_c[i][df_c[i] > 0.02]) / len(df_c[i]))
+    df_ncLen.append( len(df_nc[i][df_nc[i] > 0.02]) / len(df_nc[i]))
+    
+print('{0:0.3f}\t{1:0.3f}'.format(df_cLen[0], df_cLen[1]))
+print('{0:0.3f}\t{1:0.3f}'.format(df_ncLen[0], df_ncLen[1]))
 
-plt.show()
+'''0.000   0.000        # percent
+0.005   0.006'''
+'''0.000   1.000        # the number of
+10.000  14.000'''
