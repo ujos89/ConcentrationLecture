@@ -77,22 +77,29 @@ def cal_accuracy(test_labels, test_predictions):
 def plot_history1(history):
     hist = pd.DataFrame(history.history)
     hist['epoch'] = history.epoch
-    '''
+
     '''
     #font for ieee
     fontpath = '/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman.ttf'
     prop = fm.FontProperties(fname=fontpath)
     plt.rcParams['font.family'] = prop.get_name()
     plt.rcParams.update({'font.size':40})
+    '''
     
+    # use LaTeX fonts in the plot
+    plt.rcParams.update({'font.size': 11})
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    plt.figure(1, figsize=(5, 4), dpi=300)
+
+
 
     plt.xlabel('Epoch')
-    plt.ylabel('binary_crossentropy')
     plt.scatter(hist['epoch'], hist['binary_crossentropy'], label='Train Error', c= 'blue', alpha=.5)
     plt.scatter(hist['epoch'], hist['val_binary_crossentropy'], label = 'Validation Error', c='red',alpha=.5)
     plt.grid(True)
-    plt.title('Model Training')
-    plt.ylabel('Binary Cross-entropy')
+    plt.title('RIISK Learning Results')
+    plt.ylabel('L')
     plt.legend()
     plt.show()
 
